@@ -151,6 +151,24 @@ namespace Dapper.LiteSql
         #endregion
 
 
+        #region 根据sql查询实体(传SqlString)
+        /// <summary>
+        /// 根据sql查询实体
+        /// </summary>
+        public T Query<T>(SqlString sql) where T : new()
+        {
+            return Query<T>(sql.SQL, sql.Params);
+        }
+
+        /// <summary>
+        /// 根据sql查询实体
+        /// </summary>
+        public Task<T> QueryAsync<T>(SqlString sql) where T : new()
+        {
+            return QueryAsync<T>(sql.SQL, sql.Params);
+        }
+        #endregion
+
         #region Find 根据实体查询实体
         /// <summary>
         /// 根据实体查询实体
@@ -165,7 +183,7 @@ namespace Dapper.LiteSql
         }
         #endregion
 
-        #region Find 根据实体查询实体
+        #region FindAsync 根据实体查询实体
         /// <summary>
         /// 根据实体查询实体
         /// </summary>

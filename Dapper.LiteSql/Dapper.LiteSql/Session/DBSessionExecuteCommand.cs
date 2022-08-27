@@ -400,7 +400,7 @@ namespace Dapper.LiteSql
         {
             sql = string.Format("select count(*) from ({0}) T", sql);
 
-            return long.Parse(_conn.ExecuteScalar(sql, ToDynamicParameters(cmdParms)).ToString());
+            return QuerySingle<long>(sql, cmdParms);
         }
 
         /// <summary>
@@ -413,11 +413,125 @@ namespace Dapper.LiteSql
         {
             sql = string.Format("select count(*) from ({0}) T", sql);
 
-            return long.Parse((await _conn.ExecuteScalarAsync(sql, ToDynamicParameters(cmdParms))).ToString());
+            return await QuerySingleAsync<long>(sql, cmdParms);
         }
         #endregion
 
         #endregion
 
+        #region 传SqlString
+
+        /// <summary>
+        /// 执行SQL语句，返回影响的记录数
+        /// </summary>
+        /// <param name="sql">SqlString</param>
+        /// <returns>影响的记录数</returns>
+        public int Execute(SqlString sql)
+        {
+            return _conn.Execute(sql.SQL, ToDynamicParameters(sql.Params));
+        }
+
+        /// <summary>
+        /// 执行SQL语句，返回影响的记录数
+        /// </summary>
+        /// <param name="sql">SqlString</param>
+        /// <returns>影响的记录数</returns>
+        public Task<int> ExecuteAsync(SqlString sql)
+        {
+            return _conn.ExecuteAsync(sql.SQL, ToDynamicParameters(sql.Params));
+        }
+
+        /// <summary>
+        /// 是否存在
+        /// </summary>
+        public bool Exists(SqlString sql)
+        {
+            return Exists(sql.SQL, sql.Params);
+        }
+
+        /// <summary>
+        /// 是否存在
+        /// </summary>
+        public Task<bool> ExistsAsync(SqlString sql)
+        {
+            return ExistsAsync(sql.SQL, sql.Params);
+        }
+
+        /// <summary>
+        /// 查询单个值
+        /// </summary>
+        public object QuerySingle(SqlString sql)
+        {
+            return QuerySingle(sql.SQL, sql.Params);
+        }
+
+        /// <summary>
+        /// 查询单个值
+        /// </summary>
+        public T QuerySingle<T>(SqlString sql)
+        {
+            return QuerySingle<T>(sql.SQL, sql.Params);
+        }
+
+        /// <summary>
+        /// 查询单个值
+        /// </summary>
+        public Task<object> QuerySingleAsync(SqlString sql)
+        {
+            return QuerySingleAsync(sql.SQL, sql.Params);
+        }
+
+        /// <summary>
+        /// 查询单个值
+        /// </summary>
+        public Task<T> QuerySingleAsync<T>(SqlString sql)
+        {
+            return QuerySingleAsync<T>(sql.SQL, sql.Params);
+        }
+
+        /// <summary>
+        /// 给定一条查询SQL，返回其查询结果的数量
+        /// </summary>
+        /// <param name="sql">SqlString</param>
+        /// <returns>数量</returns>
+        public long QueryCount(SqlString sql)
+        {
+            return QueryCount(sql.SQL, sql.Params);
+        }
+
+        /// <summary>
+        /// 给定一条查询SQL，返回其查询结果的数量
+        /// </summary>
+        /// <param name="sql">SqlString</param>
+        /// <returns>数量</returns>
+        public Task<long> QueryCountAsync(SqlString sql)
+        {
+            return QueryCountAsync(sql.SQL, sql.Params);
+        }
+
+        /// <summary>
+        /// 给定一条查询SQL，返回其查询结果的数量
+        /// </summary>
+        /// <param name="sql">SqlString</param>
+        /// <param name="pageSize">每页数据条数</param>
+        /// <param name="pageCount">总页数</param>
+        /// <returns>查询结果的数量</returns>
+        public long QueryCount(SqlString sql, int pageSize, out long pageCount)
+        {
+            return QueryCount(sql.SQL, sql.Params, pageSize, out pageCount);
+        }
+
+        /// <summary>
+        /// 给定一条查询SQL，返回其查询结果的数量
+        /// </summary>
+        /// <param name="sql">SqlString</param>
+        /// <param name="pageSize">每页数据条数</param>
+        /// <returns>查询结果的数量</returns>
+        public Task<CountResult> QueryCountAsync(SqlString sql, int pageSize)
+        {
+            return QueryCountAsync(sql.SQL, sql.Params, pageSize);
+        }
+
+        #endregion
     }
 }

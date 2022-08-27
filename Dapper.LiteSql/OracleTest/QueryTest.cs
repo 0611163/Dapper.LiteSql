@@ -69,7 +69,6 @@ namespace OracleTest
 
                 //sql.Append(" and id in @ids", sql.ForList(new List<long> { 715299 }));
 
-                LogTimeUtil logTime = new LogTimeUtil();
                 List<CarinfoMerge> list = session.QueryList<CarinfoMerge>(sql.SQL, sql.Params);
                 Assert.IsTrue(list.Count > 0);
                 Console.WriteLine("CARINFO_MERGE：");
