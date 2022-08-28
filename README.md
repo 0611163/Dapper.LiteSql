@@ -158,9 +158,10 @@ namespace DAL
         /// <summary>
         /// 获取 ISession
         /// </summary>
-        public static ISession GetSession()
+        /// <param name="splitTableMapping">分表映射</param>
+        public static ISession GetSession(SplitTableMapping splitTableMapping = null)
         {
-            return _liteSqlClient.GetSession();
+            return _liteSqlClient.GetSession(splitTableMapping);
         }
         #endregion
 
@@ -168,9 +169,10 @@ namespace DAL
         /// <summary>
         /// 获取 ISession (异步)
         /// </summary>
-        public static async Task<ISession> GetSessionAsync()
+        /// <param name="splitTableMapping">分表映射</param>
+        public static async Task<ISession> GetSessionAsync(SplitTableMapping splitTableMapping = null)
         {
-            return await _liteSqlClient.GetSessionAsync();
+            return await _liteSqlClient.GetSessionAsync(splitTableMapping);
         }
         #endregion
 
@@ -1118,9 +1120,10 @@ namespace PostgreSQLTest
         /// <summary>
         /// 获取 ISession
         /// </summary>
-        public static ISession GetSession()
+        /// <param name="splitTableMapping">分表映射</param>
+        public static ISession GetSession(SplitTableMapping splitTableMapping = null)
         {
-            return _liteSqlClient.GetSession();
+            return _liteSqlClient.GetSession(splitTableMapping);
         }
         #endregion
 
@@ -1128,9 +1131,10 @@ namespace PostgreSQLTest
         /// <summary>
         /// 获取 ISession (异步)
         /// </summary>
-        public static async Task<ISession> GetSessionAsync()
+        /// <param name="splitTableMapping">分表映射</param>
+        public static async Task<ISession> GetSessionAsync(SplitTableMapping splitTableMapping = null)
         {
-            return await _liteSqlClient.GetSessionAsync();
+            return await _liteSqlClient.GetSessionAsync(splitTableMapping);
         }
         #endregion
 
