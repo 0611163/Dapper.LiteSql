@@ -49,11 +49,6 @@ namespace Dapper.LiteSql
         private IProvider _provider;
 
         /// <summary>
-        /// 带参数的SQL插入和修改语句中，参数前面的符号
-        /// </summary>
-        private string _parameterMark;
-
-        /// <summary>
         /// 数据库自增(全局设置)
         /// </summary>
         private bool _autoIncrement;
@@ -100,7 +95,6 @@ namespace Dapper.LiteSql
             _autoIncrement = autoIncrement;
 
             _conn = _provider.CreateConnection(_connectionString);
-            _parameterMark = _provider.GetParameterMark();
         }
 
         /// <summary>
@@ -114,7 +108,6 @@ namespace Dapper.LiteSql
             _autoIncrement = autoIncrement;
 
             _conn = _provider.CreateConnection(_connectionString);
-            _parameterMark = _provider.GetParameterMark();
         }
         #endregion
 
@@ -184,7 +177,7 @@ namespace Dapper.LiteSql
         {
             Type type = typeof(T);
 
-            string idName = GetIdName(type);
+            string idName = GetIdName(type, out _);
             string sql = _provider.CreateGetMaxIdSql(GetTableName(_provider, type), _provider.OpenQuote + idName + _provider.CloseQuote);
 
             object obj = _conn.ExecuteScalar(sql);

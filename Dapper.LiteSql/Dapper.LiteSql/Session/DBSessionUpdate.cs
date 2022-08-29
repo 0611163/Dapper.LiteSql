@@ -216,22 +216,23 @@ namespace Dapper.LiteSql
                     object val = propertyInfo.GetValue(obj, null);
                     if (oldObj == null || !object.Equals(oldVal, val))
                     {
-                        sbPros.Append(string.Format(" {0}={1}{2},", string.Format("{0}{1}{2}", _provider.OpenQuote, propertyInfoEx.FieldName, _provider.CloseQuote), _parameterMark, propertyInfoEx.FieldName));
-                        DbParameter param = _provider.GetDbParameter(_parameterMark + propertyInfoEx.FieldName, val);
+                        sbPros.Append(string.Format(" {0}={1},", string.Format("{0}{1}{2}", _provider.OpenQuote, propertyInfoEx.FieldName, _provider.CloseQuote), _provider.GetParameterName(propertyInfoEx.FieldName, propertyInfoEx.PropertyInfo.PropertyType)));
+                        DbParameter param = _provider.GetDbParameter(_provider.GetParameterName(propertyInfoEx.FieldName, propertyInfoEx.PropertyInfo.PropertyType),  val);
                         paramList.Add(param);
                         savedCount++;
                     }
                 }
             }
 
-            strSql.Append(string.Format("update {0} ", GetTableName(_provider, type)));
-            strSql.Append(string.Format(" set "));
+            Tuple<string, string, string> updateTmpl = _provider.CreateUpdateSqlTempldate();
+            strSql.Append(string.Format(updateTmpl.Item1 + " {0} ", GetTableName(_provider, type)));
+            strSql.Append(string.Format(updateTmpl.Item2 + " "));
             parameters = paramList.ToArray();
             if (sbPros.Length > 0)
             {
                 strSql.Append(sbPros.ToString(0, sbPros.Length - 1));
             }
-            strSql.Append(string.Format(" where {0}", CreatePkCondition(_provider, obj.GetType(), obj)));
+            strSql.Append(string.Format(" " + updateTmpl.Item3 + " {0}", CreatePkCondition(_provider, obj.GetType(), obj)));
         }
         #endregion
 
@@ -244,6 +245,7 @@ namespace Dapper.LiteSql
             Type type = typeof(T);
             SetTypeMap(type);
 
+            Tuple<string, string, string> updateTmpl = _provider.CreateUpdateSqlTempldate();
             List<DbParameter> paramList = new List<DbParameter>();
             for (int n = 0; n < list.Count; n++)
             {
@@ -264,8 +266,8 @@ namespace Dapper.LiteSql
                         object val = propertyInfo.GetValue(obj, null);
                         if (oldObj == null || !object.Equals(oldVal, val))
                         {
-                            sbPros.Append(string.Format(" {0}={1}{2}{3},", string.Format("{0}{1}{2}", _provider.OpenQuote, propertyInfoEx.FieldName, _provider.CloseQuote), _parameterMark, propertyInfoEx.FieldName, n));
-                            DbParameter param = _provider.GetDbParameter(_parameterMark + propertyInfoEx.FieldName + n, val);
+                            sbPros.Append(string.Format(" {0}={1},", string.Format("{0}{1}{2}", _provider.OpenQuote, propertyInfoEx.FieldName, _provider.CloseQuote), _provider.GetParameterName(propertyInfoEx.FieldName + n, propertyInfoEx.PropertyInfo.PropertyType)));
+                            DbParameter param = _provider.GetDbParameter(_provider.GetParameterName(propertyInfoEx.FieldName + n, propertyInfoEx.PropertyInfo.PropertyType), val);
                             paramList.Add(param);
                             subSavedCount++;
                         }
@@ -275,13 +277,13 @@ namespace Dapper.LiteSql
                 if (subSavedCount > 0)
                 {
                     savedCount++;
-                    strSql.Append(string.Format("update {0} ", GetTableName(_provider, type)));
-                    strSql.Append(string.Format(" set "));
+                    strSql.Append(string.Format(updateTmpl.Item1 + " {0} ", GetTableName(_provider, type)));
+                    strSql.Append(string.Format(updateTmpl.Item2 + " "));
                     if (sbPros.Length > 0)
                     {
                         strSql.Append(sbPros.ToString(0, sbPros.Length - 1));
                     }
-                    strSql.Append(string.Format(" where {0}; ", CreatePkCondition(_provider, obj.GetType(), obj)));
+                    strSql.Append(string.Format(" " + updateTmpl.Item3 + " {0}; ", CreatePkCondition(_provider, obj.GetType(), obj)));
                 }
             }
 

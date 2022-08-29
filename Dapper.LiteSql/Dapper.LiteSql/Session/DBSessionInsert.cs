@@ -103,7 +103,7 @@ namespace Dapper.LiteSql
             SetTypeMap(type);
             strSql.Append(string.Format("insert into {0}(", GetTableName(_provider, type)));
             PropertyInfoEx[] propertyInfoList = GetEntityProperties(type);
-            List<string> propertyNameList = new List<string>();
+            List<Tuple<string, Type>> propertyNameList = new List<Tuple<string, Type>>();
             foreach (PropertyInfoEx propertyInfoEx in propertyInfoList)
             {
                 PropertyInfo propertyInfo = propertyInfoEx.PropertyInfo;
@@ -112,13 +112,13 @@ namespace Dapper.LiteSql
 
                 if (propertyInfo.GetCustomAttributes(typeof(ColumnAttribute), false).Length > 0)
                 {
-                    propertyNameList.Add(propertyInfoEx.FieldName);
+                    propertyNameList.Add(new Tuple<string, Type>(propertyInfoEx.FieldName, propertyInfoEx.PropertyInfo.PropertyType));
                     savedCount++;
                 }
             }
 
-            strSql.Append(string.Format("{0})", string.Join(",", propertyNameList.ConvertAll(a => string.Format("{0}{1}{2}", _provider.OpenQuote, a, _provider.CloseQuote)).ToArray())));
-            strSql.Append(string.Format(" values ({0})", string.Join(",", propertyNameList.ConvertAll<string>(a => _parameterMark + a).ToArray())));
+            strSql.Append(string.Format("{0})", string.Join(",", propertyNameList.ConvertAll(a => string.Format("{0}{1}{2}", _provider.OpenQuote, a.Item1, _provider.CloseQuote)).ToArray())));
+            strSql.Append(string.Format(" values ({0})", string.Join(",", propertyNameList.ConvertAll<string>(a => _provider.GetParameterName(a.Item1, a.Item2)).ToArray())));
             parameters = new DbParameter[savedCount];
             int k = 0;
             for (int i = 0; i < propertyInfoList.Length && savedCount > 0; i++)
@@ -131,7 +131,8 @@ namespace Dapper.LiteSql
                 if (propertyInfo.GetCustomAttributes(typeof(ColumnAttribute), false).Length > 0)
                 {
                     object val = propertyInfo.GetValue(obj, null);
-                    DbParameter param = _provider.GetDbParameter(_parameterMark + propertyInfoEx.FieldName, val);
+                    Type parameterType = val == null ? typeof(object) : val.GetType();
+                    DbParameter param = _provider.GetDbParameter(_provider.GetParameterName(propertyInfoEx.FieldName, parameterType), val);
                     parameters[k++] = param;
                 }
             }
@@ -148,7 +149,7 @@ namespace Dapper.LiteSql
             SetTypeMap(type);
             strSql.Append(string.Format("insert into {0}(", GetTableName(_provider, type)));
             PropertyInfoEx[] propertyInfoList = GetEntityProperties(type);
-            List<string> propertyNameList = new List<string>();
+            List<Tuple<string, Type>> propertyNameList = new List<Tuple<string, Type>>();
             foreach (PropertyInfoEx propertyInfoEx in propertyInfoList)
             {
                 PropertyInfo propertyInfo = propertyInfoEx.PropertyInfo;
@@ -157,15 +158,15 @@ namespace Dapper.LiteSql
 
                 if (propertyInfo.GetCustomAttributes(typeof(ColumnAttribute), false).Length > 0)
                 {
-                    propertyNameList.Add(propertyInfoEx.FieldName);
+                    propertyNameList.Add(new Tuple<string, Type>(propertyInfoEx.FieldName, propertyInfoEx.PropertyInfo.PropertyType));
                     savedCount++;
                 }
             }
 
-            strSql.Append(string.Format("{0}) values ", string.Join(",", propertyNameList.ConvertAll<string>(a => _provider.OpenQuote + a + _provider.CloseQuote).ToArray())));
+            strSql.Append(string.Format("{0}) values ", string.Join(",", propertyNameList.ConvertAll<string>(a => _provider.OpenQuote + a.Item1 + _provider.CloseQuote).ToArray())));
             for (int i = 0; i < list.Count; i++)
             {
-                strSql.Append(string.Format(" ({0})", string.Join(",", propertyNameList.ConvertAll<string>(a => _parameterMark + a + i).ToArray())));
+                strSql.Append(string.Format(" ({0})", string.Join(",", propertyNameList.ConvertAll<string>(a => _provider.GetParameterName(a.Item1 + i, a.Item2)).ToArray())));
                 if (i != list.Count - 1)
                 {
                     strSql.Append(", ");
@@ -187,7 +188,8 @@ namespace Dapper.LiteSql
                     if (propertyInfo.GetCustomAttributes(typeof(ColumnAttribute), false).Length > 0)
                     {
                         object val = propertyInfo.GetValue(obj, null);
-                        DbParameter param = _provider.GetDbParameter(_parameterMark + propertyInfoEx.FieldName + n, val);
+                        Type parameterType = val == null ? typeof(object) : val.GetType();
+                        DbParameter param = _provider.GetDbParameter(_provider.GetParameterName(propertyInfoEx.FieldName + n, parameterType), val);
                         parameters[k++] = param;
                     }
                 }
