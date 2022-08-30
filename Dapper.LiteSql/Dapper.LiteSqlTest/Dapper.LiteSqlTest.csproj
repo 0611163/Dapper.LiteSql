@@ -74,10 +74,6 @@
       <Project>{14b4ab3b-60ce-48c3-8912-14a54a9b20fd}</Project>
       <Name>Dapper.LiteSql</Name>
     </ProjectReference>
-    <ProjectReference Include="..\DBHelper\DBHelper.csproj">
-      <Project>{9e5d0f8c-0361-4d5d-82b0-53221dc8294a}</Project>
-      <Name>DBHelper</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Models\Models.csproj">
       <Project>{d4712a59-6102-40a6-8567-dc5d8bfb5e1c}</Project>
       <Name>Models</Name>
