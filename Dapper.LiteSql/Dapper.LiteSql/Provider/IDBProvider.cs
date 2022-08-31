@@ -15,7 +15,7 @@ namespace Dapper.LiteSql
         /// <summary>
         /// 生成 DbParameter
         /// </summary>
-        DbParameter GetDbParameter(string name, object vallue);
+        DbParameter GetDbParameter(string name, object value);
 
     }
 }

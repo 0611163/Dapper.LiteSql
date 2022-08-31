@@ -25,16 +25,6 @@ namespace Dapper.LiteSql
         }
         #endregion
 
-        #region AsISqlString
-        /// <summary>
-        /// 转成ISqlString接口
-        /// </summary>
-        public ISqlString AsISqlString()
-        {
-            return this;
-        }
-        #endregion
-
         #region Queryable
         /// <summary>
         /// 创建单表查询SQL

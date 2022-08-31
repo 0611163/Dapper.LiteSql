@@ -98,10 +98,11 @@ namespace Dapper.LiteSql
         /// <summary>
         /// 创建主键查询条件
         /// </summary>
-        private static string CreatePkCondition(IProvider provider, Type type, object val)
+        private static string CreatePkCondition(IProvider provider, Type type, object val, int index, out DbParameter[] cmdParams)
         {
             StringBuilder sql = new StringBuilder();
 
+            List<DbParameter> paramList = new List<DbParameter>();
             PropertyInfoEx[] propertyInfoList = GetEntityProperties(type);
             int i = 0;
             foreach (PropertyInfoEx propertyInfoEx in propertyInfoList)
@@ -112,18 +113,14 @@ namespace Dapper.LiteSql
                 {
                     if (i != 0) sql.Append(" and ");
                     object fieldValue = propertyInfo.GetValue(val, null);
-                    if (fieldValue.GetType() == typeof(string) || fieldValue.GetType() == typeof(String))
-                    {
-                        sql.AppendFormat(" {0}='{1}'", string.Format("{0}{1}{2}", provider.OpenQuote, propertyInfoEx.FieldName, provider.CloseQuote), fieldValue);
-                    }
-                    else
-                    {
-                        sql.AppendFormat(" {0}={1}", string.Format("{0}{1}{2}", provider.OpenQuote, propertyInfoEx.FieldName, provider.CloseQuote), fieldValue);
-                    }
+                    DbParameter parameter = provider.GetDbParameter(provider.GetParameterName("Param" + index + propertyInfoEx.FieldName, propertyInfoEx.PropertyInfo.PropertyType), fieldValue);
+                    paramList.Add(parameter);
+                    sql.AppendFormat(" {0}={1}", provider.OpenQuote + propertyInfoEx.FieldName + provider.CloseQuote, provider.GetParameterName("Param" + index + propertyInfoEx.FieldName, propertyInfoEx.PropertyInfo.PropertyType));
                     i++;
                 }
             }
 
+            cmdParams = paramList.ToArray();
             return sql.ToString();
         }
         #endregion
