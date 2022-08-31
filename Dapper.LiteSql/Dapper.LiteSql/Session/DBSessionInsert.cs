@@ -27,6 +27,24 @@ namespace Dapper.LiteSql
 
             _conn.Execute(strSql.ToString(), ToDynamicParameters(parameters), _tran);
         }
+
+        /// <summary>
+        /// 添加并返回ID
+        /// </summary>
+        public long InsertReturnId(object obj, string selectIdSql)
+        {
+            StringBuilder strSql = new StringBuilder();
+            int savedCount = 0;
+            DbParameter[] parameters = null;
+
+            PrepareInsertSql(obj, _autoIncrement, ref strSql, ref parameters, ref savedCount);
+            strSql.Append(";" + selectIdSql + ";");
+
+            OnExecuting?.Invoke(strSql.ToString(), parameters);
+
+            object id = _conn.ExecuteScalar(strSql.ToString(), ToDynamicParameters(parameters), _tran);
+            return Convert.ToInt64(id);
+        }
         #endregion
 
         #region InsertAsync 添加
@@ -44,6 +62,24 @@ namespace Dapper.LiteSql
             OnExecuting?.Invoke(strSql.ToString(), parameters);
 
             return _conn.ExecuteAsync(strSql.ToString(), ToDynamicParameters(parameters), _tran);
+        }
+
+        /// <summary>
+        /// 添加并返回ID
+        /// </summary>
+        public async Task<long> InsertReturnIdAsync(object obj, string selectIdSql)
+        {
+            StringBuilder strSql = new StringBuilder();
+            int savedCount = 0;
+            DbParameter[] parameters = null;
+
+            PrepareInsertSql(obj, _autoIncrement, ref strSql, ref parameters, ref savedCount);
+            strSql.Append(";" + selectIdSql + ";");
+
+            OnExecuting?.Invoke(strSql.ToString(), parameters);
+
+            object id = await _conn.ExecuteScalarAsync(strSql.ToString(), ToDynamicParameters(parameters), _tran);
+            return Convert.ToInt64(id);
         }
         #endregion
 
