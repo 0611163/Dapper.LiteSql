@@ -89,6 +89,12 @@ using (var session = LiteSqlFactory.GetSession())
 
 [https://gitee.com/s0611163/Dapper.LiteSql/](https://gitee.com/s0611163/Dapper.LiteSql/)
 
+## 支持 ClickHouse 数据库
+
+[https://gitee.com/s0611163/ClickHouseTest](https://gitee.com/s0611163/ClickHouseTest)
+
+这是一个示例，只要ADO.NET支持的数据库，您都可以通过实现IProvider接口尝试支持
+
 ## 作者邮箱
 
     651029594@qq.com
