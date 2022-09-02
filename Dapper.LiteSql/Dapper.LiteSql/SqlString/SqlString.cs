@@ -45,6 +45,11 @@ namespace Dapper.LiteSql
 
         protected DBSession _dbSession;
 
+        /// <summary>
+        /// 子查询SQL集合
+        /// </summary>
+        protected List<string> _subSqls = new List<string>();
+
         #endregion
 
         #region 构造函数
@@ -62,16 +67,6 @@ namespace Dapper.LiteSql
         #endregion
 
         #region Append
-        /// <summary>
-        /// 追加参数化SQL
-        /// </summary>
-        /// <param name="sql">SQL</param>
-        /// <param name="args">参数(支持多个参数或者把多个参数放在一个匿名对象中)</param>
-        public ISqlQueryable<T> Append<T>(string sql, params object[] args) where T : new()
-        {
-            return Append(sql, args) as ISqlQueryable<T>;
-        }
-
         /// <summary>
         /// 追加参数化SQL
         /// </summary>
@@ -184,6 +179,42 @@ namespace Dapper.LiteSql
             _sql.Append(string.Format(" {0} ", sql.Trim()));
 
             return this;
+        }
+        #endregion
+
+        #region Append
+        /// <summary>
+        /// 追加参数化SQL
+        /// </summary>
+        /// <param name="sql">SQL</param>
+        /// <param name="args">参数(支持多个参数或者把多个参数放在一个匿名对象中)</param>
+        public ISqlQueryable<T> Append<T>(string sql, params object[] args) where T : new()
+        {
+            return Append(sql, args) as ISqlQueryable<T>;
+        }
+
+        /// <summary>
+        /// 追加参数化SQL
+        /// </summary>
+        /// <param name="sql">SQL</param>
+        /// <param name="subSql">子SQL</param>
+        public ISqlString Append(string sql, ISqlString subSql)
+        {
+            _sql.Append(sql + " (" + subSql.SQL + ")");
+            _paramList.AddRange(subSql.Params);
+            return this;
+        }
+
+        /// <summary>
+        /// 追加参数化SQL
+        /// </summary>
+        /// <param name="sql">SQL</param>
+        /// <param name="subSql">子SQL</param>
+        public ISqlQueryable<T> Append<T>(string sql, ISqlString subSql) where T : new()
+        {
+            _sql.Append(sql + " (" + subSql.SQL + ")");
+            _paramList.AddRange(subSql.Params);
+            return this as ISqlQueryable<T>; ;
         }
         #endregion
 
@@ -340,6 +371,21 @@ namespace Dapper.LiteSql
         public SqlValue ForList(IList list)
         {
             return _provider.ForList(list);
+        }
+        #endregion
+
+        #region RemoveSubSqls
+        /// <summary>
+        /// 返回移除子查询后的SQL
+        /// </summary>
+        protected string RemoveSubSqls(string sql)
+        {
+            StringBuilder sb = new StringBuilder(sql);
+            foreach (string subSql in _subSqls)
+            {
+                sb.Replace(subSql, string.Empty);
+            }
+            return sb.ToString();
         }
         #endregion
 

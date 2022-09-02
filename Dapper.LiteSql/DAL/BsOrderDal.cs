@@ -296,11 +296,11 @@ namespace DAL
 
                 sql.AppendIf(status.HasValue, " and t.status=@status", status);
 
-                sql.AppendIf(!string.IsNullOrWhiteSpace(remark), " and t.remark like concat('%',@remark,'%')", remark);
+                sql.AppendIf(!string.IsNullOrWhiteSpace(remark), " and t.remark like @Remark", new { Remark = "%" + remark + "%" });
 
-                sql.AppendIf(startTime.HasValue, " and t.order_time>=STR_TO_DATE(@startTime, '%Y-%m-%d %H:%i:%s') ", () => startTime.Value.ToString("yyyy-MM-dd HH:mm:ss"));
+                sql.AppendIf(startTime.HasValue, " and t.order_time>=@startTime ", startTime);
 
-                sql.AppendIf(endTime.HasValue, " and t.order_time<=STR_TO_DATE(@endTime, '%Y-%m-%d %H:%i:%s') ", () => endTime.Value.ToString("yyyy-MM-dd HH:mm:ss"));
+                sql.AppendIf(endTime.HasValue, " and t.order_time<=@endTime ", endTime);
 
                 int index = 0;
                 string[] idArr = ids.Split(',');

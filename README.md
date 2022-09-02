@@ -454,11 +454,11 @@ public List<BsOrder> GetList(int? status, string remark, DateTime? startTime, Da
 
         sql.AppendIf(status.HasValue, " and t.status=@status", status);
 
-        sql.AppendIf(!string.IsNullOrWhiteSpace(remark), " and t.remark like concat('%',@remark,'%')", remark);
+        sql.AppendIf(!string.IsNullOrWhiteSpace(remark), " and t.remark like @remark", "%" + remark + "%");
 
-        sql.AppendIf(startTime.HasValue, " and t.order_time>=STR_TO_DATE(@startTime, '%Y-%m-%d %H:%i:%s') ", () => startTime.Value.ToString("yyyy-MM-dd HH:mm:ss"));
+        sql.AppendIf(startTime.HasValue, " and t.order_time >= @startTime ", startTime);
 
-        sql.AppendIf(endTime.HasValue, " and t.order_time<=STR_TO_DATE(@endTime, '%Y-%m-%d %H:%i:%s') ", () => endTime.Value.ToString("yyyy-MM-dd HH:mm:ss"));
+        sql.AppendIf(endTime.HasValue, " and t.order_time <= @endTime ", endTime);
 
         sql.Append(" order by t.order_time desc, t.id asc ");
 
@@ -481,13 +481,13 @@ public List<BsOrder> GetList(int? status, string remark, DateTime? startTime, Da
             left join sys_user u on t.order_userid=u.id
             where 1=1");
 
-        sql.AppendIf(status.HasValue, " and t.status=@status", new { status = status });
+        sql.AppendIf(status.HasValue, " and t.status=@Status", new { Status = status });
 
-        sql.AppendIf(!string.IsNullOrWhiteSpace(remark), " and t.remark like concat('%',@remark,'%')", new { remark = remark });
+        sql.AppendIf(!string.IsNullOrWhiteSpace(remark), " and t.remark like @Remark", new { Remark = "%" + remark + "%" });
 
-        sql.AppendIf(startTime.HasValue, " and t.order_time>=STR_TO_DATE(@startTime, '%Y-%m-%d %H:%i:%s') ", () => new { startTime = startTime.Value.ToString("yyyy-MM-dd HH:mm:ss") });
+        sql.AppendIf(startTime.HasValue, " and t.order_time >= @StartTime ", new { StartTime = startTime } });
 
-        sql.AppendIf(endTime.HasValue, " and t.order_time<=STR_TO_DATE(@endTime, '%Y-%m-%d %H:%i:%s') ", () => new { endTime = endTime.Value.ToString("yyyy-MM-dd HH:mm:ss") });
+        sql.AppendIf(endTime.HasValue, " and t.order_time <= @EndTime ", endTime });
 
         sql.Append(" order by t.order_time desc, t.id asc ");
 
@@ -512,11 +512,11 @@ public List<BsOrder> GetListPage(ref PageModel pageModel, int? status, string re
 
         sql.AppendIf(status.HasValue, " and t.status=@status", status);
 
-        sql.AppendIf(!string.IsNullOrWhiteSpace(remark), " and t.remark like concat('%',@remark,'%')", remark);
+        sql.AppendIf(!string.IsNullOrWhiteSpace(remark), " and t.remark like @remark", "%" + remark + "%");
 
-        sql.AppendIf(startTime.HasValue, " and t.order_time>=STR_TO_DATE(@startTime, '%Y-%m-%d %H:%i:%s') ", () => startTime.Value.ToString("yyyy-MM-dd HH:mm:ss"));
+        sql.AppendIf(startTime.HasValue, " and t.order_time >= @startTime ", startTime);
 
-        sql.AppendIf(endTime.HasValue, " and t.order_time<=STR_TO_DATE(@endTime, '%Y-%m-%d %H:%i:%s') ", () => endTime.Value.ToString("yyyy-MM-dd HH:mm:ss"));
+        sql.AppendIf(endTime.HasValue, " and t.order_time <= @endTime ", endTime);
 
         string orderby = " order by t.order_time desc, t.id asc ";
         
@@ -583,11 +583,11 @@ public async Task<List<BsOrder>> GetListPageAsync(PageModel pageModel, int? stat
 
         sql.AppendIf(status.HasValue, " and t.status=@status", status);
 
-        sql.AppendIf(!string.IsNullOrWhiteSpace(remark), " and t.remark like concat('%',@remark,'%')", remark);
+        sql.AppendIf(!string.IsNullOrWhiteSpace(remark), " and t.remark like @remark", "%" + remark + "%");
 
-        sql.AppendIf(startTime.HasValue, " and t.order_time>=STR_TO_DATE(@startTime, '%Y-%m-%d %H:%i:%s') ", () => startTime.Value.ToString("yyyy-MM-dd HH:mm:ss"));
+        sql.AppendIf(startTime.HasValue, " and t.order_time >= @startTime ", startTime);
 
-        sql.AppendIf(endTime.HasValue, " and t.order_time<=STR_TO_DATE(@endTime, '%Y-%m-%d %H:%i:%s') ", () => endTime.Value.ToString("yyyy-MM-dd HH:mm:ss"));
+        sql.AppendIf(endTime.HasValue, " and t.order_time <= @endTime ", endTime);
 
         string orderby = " order by t.order_time desc, t.id asc ";
         
@@ -754,6 +754,104 @@ using (var session = LiteSqlFactory.GetSession())
 
     long id = session.Queryable<SysUser>().Where(t => t.Id == 1).First().Id;
     Assert.IsTrue(id == 1);
+
+    foreach (SysUser item in list)
+    {
+        Console.WriteLine(ModelToStringUtil.ToString(item));
+    }
+    Assert.IsTrue(list.Count > 0);
+}
+```
+
+### 拼接子SQL
+
+```C#
+using (var session = LiteSqlFactory.GetSession())
+{
+    session.OnExecuting = (s, p) => Console.WriteLine(s); //打印SQL
+
+    var subSql = session.CreateSql<SysUser>("select t.Id from sys_user t").Where(t => !t.RealName.Contains("管理员"));
+
+    var subSql2 = session.CreateSql<SysUser>("select t.Id from sys_user t").Where(t => t.Id <= 20);
+
+    var sql = session.Queryable<SysUser>()
+
+        .Where(t => t.Password.Contains("345"))
+
+        .Append(" and id in ", subSql)
+
+        .Append<SysUser>(@" and t.create_time >= @StartTime", new { StartTime = new DateTime(2020, 1, 1) })
+
+        .Append<SysUser>(" and id in ", subSql2)
+
+        .Where(t => t.Password.Contains("234"));
+
+    var sql2 = session.Queryable<SysUser>().Where(t => t.RealName.Contains("管理员"));
+
+    sql.Append(" union all ", sql2);
+
+    List<SysUser> list = sql.QueryList<SysUser>();
+
+    foreach (SysUser item in list)
+    {
+        Console.WriteLine(ModelToStringUtil.ToString(item));
+    }
+    Assert.IsTrue(list.Count > 0);
+    Assert.IsTrue(list.Count(t => t.RealName.Contains("管理员")) > 0);
+    Assert.IsTrue(list.Count(t => t.Id > 20) == 0);
+}
+```
+
+### 拼接子查询
+
+```C#
+using (var session = LiteSqlFactory.GetSession())
+{
+    session.OnExecuting = (s, p) => Console.WriteLine(s); //打印SQL
+
+    List<SysUser> list = session.CreateSql<SysUser>()
+        .Select(session.CreateSql("count(id) as Count"))
+        .Select(t => new
+        {
+            t.RealName,
+            t.CreateUserid
+        })
+        .Where(t => t.Id >= 0)
+        .Append<SysUser>("group by t.real_name, t.create_userid")
+        .Append<SysUser>("having real_name like @Name1 or real_name like @Name2", new
+        {
+            Name1 = "%管理员%",
+            Name2 = "%测试%"
+        })
+        .ToList();
+
+    foreach (SysUser item in list)
+    {
+        Console.WriteLine(ModelToStringUtil.ToString(item));
+    }
+    Assert.IsTrue(list.Count > 0);
+}
+```
+
+```C#
+using (var session = LiteSqlFactory.GetSession())
+{
+    session.OnExecuting = (s, p) => Console.WriteLine(s); //打印SQL
+
+    List<SysUser> list = session.CreateSql<SysUser>()
+        .Select(t => new
+        {
+            t.RealName,
+            t.CreateUserid
+        })
+        .Select(session.CreateSql(@"(
+                select count(1) 
+                from bs_order o 
+                where o.order_userid = t.id
+                and o.status = @Status
+            ) as OrderCount", new { Status = 0 }))
+        .Where(t => t.Id >= 0)
+        .ToList();
 
     foreach (SysUser item in list)
     {
