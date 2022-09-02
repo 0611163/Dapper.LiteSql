@@ -46,27 +46,27 @@ using (var session = LiteSqlFactory.GetSession())
 
 ## 特点
 
-1. 支持Oracle、MSSQL、MySQL、PostgreSQL、SQLite五种数据库
-2. 可以很方便地支持任意关系数据库
-3. 有配套的Model生成器
-4. insert、update、delete操作无需写SQL
-5. 查询使用原生SQL
-6. 查询结果通过映射转成实体类或实体类集合
-7. 支持参数化查询，通过SqlString类提供非常方便的参数化查询
-8. 支持连接多个数据源
+1. 支持Oracle、SQL Server、MySQL、PostgreSQL、SQLite五种数据库；另外只要ADO.NET支持的数据库，都可以很方便地通过实现IProvider接口支持，仅需写150行左右的代码
+2. 有配套的Model生成器
+3. 数据插入、更新、批量插入、批量更新，支持实体类、实体类集合，无需拼SQL；删除操作支持根据主键或查询条件删除；增删改支持联合主键
+4. 查询以原生SQL为主，Lambda表达式辅助
+5. 支持参数化查询，统一不同数据库的参数化查询SQL
+6. 支持连接多个数据源
 9. 支持手动分表
-10. 单表查询、单表分页查询、简单的联表分页查询支持Lambda表达式
+10. 单表查询、单表分页查询、简单的连表查询支持Lambda表达式
 11. 支持原生SQL和Lambda表达式混写
+12. 支持拼接子查询；主查询、子查询可以分开拼接，逻辑更清晰
 
 ## 优点
 
 1. 比较简单，学习成本低
-2. 查询使用原生SQL
+2. 查询以原生SQL为主，简单Lambda表达式辅助
+3. 代码量仅4000多行，更容易修改和掌控代码质量
 
 ## 缺点
 
 1. 对Lambda表达式的支持比较弱
-2. 复杂查询不支持Lambda表达式(子查询、分组统计查询、嵌套查询等不支持)
+2. 复杂查询不支持Lambda表达式(子查询、分组统计查询、嵌套查询等不支持Lambda表达式写法)
 
 ## 建议
 
@@ -77,23 +77,22 @@ using (var session = LiteSqlFactory.GetSession())
 ## 开发环境
 
 1. VS2022
-2. 测试工程使用.NET Framework 4.5.2
+2. 目标框架：net461;netstandard2.0;net5.0
+3. 测试工程使用.NET Framework 4.5.2
 
 ## 配套Model生成器地址：
 
 [https://gitee.com/s0611163/ModelGenerator](https://gitee.com/s0611163/ModelGenerator)
-
-## Dapper版
-
-使用ADO.NET操作数据库改成了使用Dapper操作数据库
-
-[https://gitee.com/s0611163/Dapper.LiteSql/](https://gitee.com/s0611163/Dapper.LiteSql/)
 
 ## 支持 ClickHouse 数据库
 
 [https://gitee.com/s0611163/ClickHouseTest](https://gitee.com/s0611163/ClickHouseTest)
 
 这是一个示例，只要ADO.NET支持的数据库，您都可以通过实现IProvider接口尝试支持
+
+## .NET 6 环境下测试
+
+[https://gitee.com/s0611163/LiteSqlTest](https://gitee.com/s0611163/LiteSqlTest)
 
 ## 作者邮箱
 
@@ -104,7 +103,7 @@ using (var session = LiteSqlFactory.GetSession())
 1. 安装LiteSql
 
 ```text
-Install-Package Dapper.LiteSql -Version 1.6.13
+Install-Package Dapper.LiteSql -Version 1.6.15
 ```
 
 2. 安装对应的数据库引擎
@@ -979,13 +978,13 @@ using (var session = LiteSqlFactory.GetSession(splitTableMapping))
 
 ## 支持更多数据库
 
-    现有架构实际上支持任何传统关系型数据库
+    只要ADO.NET支持的数据库，都可以支持
 
 ### 如何实现
 
     以PostgreSQL为例，假如该库尚未支持PostgreSQL
 
-1. 定义一个数据库提供者类，实现IProvider接口
+#### 定义一个数据库提供者类，实现IProvider接口
 
 ```C#
 using LiteSql;
@@ -1144,149 +1143,7 @@ namespace PostgreSQLTest
 }
 ```
 
-如果觉得需要实现的接口太多太麻烦，可以写个不支持lambda表达式的版本，即不实现For开头的接口，如下所示：
-
-```C#
-using LiteSql;
-using Npgsql;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Text;
-
-namespace PostgreSQLTest
-{
-    public class PostgreSQLProvider : IProvider
-    {
-        #region OpenQuote 引号
-        /// <summary>
-        /// 引号
-        /// </summary>
-        public string OpenQuote
-        {
-            get
-            {
-                return "\"";
-            }
-        }
-        #endregion
-
-        #region CloseQuote 引号
-        /// <summary>
-        /// 引号
-        /// </summary>
-        public string CloseQuote
-        {
-            get
-            {
-                return "\"";
-            }
-        }
-        #endregion
-
-        #region 创建 DbConnection
-        public DbConnection CreateConnection(string connectionString)
-        {
-            return new NpgsqlConnection(connectionString);
-        }
-        #endregion
-
-        #region 生成 DbParameter
-        public DbParameter GetDbParameter(string name, object value)
-        {
-            return new NpgsqlParameter(name, value);
-        }
-        #endregion
-
-        #region GetParameterName
-        public string GetParameterName(string parameterName, Type parameterType)
-        {
-            return "@" + parameterName;
-        }
-        #endregion
-
-        #region 创建获取最大编号SQL
-        public string CreateGetMaxIdSql(string key, Type type)
-        {
-            return string.Format("SELECT Max({0}) FROM {1}", key, type.Name);
-        }
-        #endregion
-
-        #region 创建分页SQL
-        public string CreatePageSql(string sql, string orderby, int pageSize, int currentPage, int totalRows)
-        {
-            StringBuilder sb = new StringBuilder();
-            int startRow = 0;
-            int endRow = 0;
-
-            #region 分页查询语句
-            startRow = pageSize * (currentPage - 1);
-
-            sb.Append("select * from (");
-            sb.Append(sql);
-            if (!string.IsNullOrWhiteSpace(orderby))
-            {
-                sb.Append(" ");
-                sb.Append(orderby);
-            }
-            sb.AppendFormat(" ) row_limit limit {0} offset {1}", pageSize, startRow);
-            #endregion
-
-            return sb.ToString();
-        }
-        #endregion
-
-        #region 删除SQL语句模板
-        /// <summary>
-        /// 删除SQL语句模板 两个值分别对应 “delete from [表名] where [查询条件]”中的“delete from”和“where”
-        /// </summary>
-        public Tuple<string, string> CreateDeleteSqlTempldate()
-        {
-            return new Tuple<string, string>("delete from", "where");
-        }
-        #endregion
-
-        #region 更新SQL语句模板
-        /// <summary>
-        /// 更新SQL语句模板 三个值分别对应 “update [表名] set [赋值语句] where [查询条件]”中的“update”、“set”和“where”
-        /// </summary>
-        public Tuple<string, string, string> CreateUpdateSqlTempldate()
-        {
-            return new Tuple<string, string, string>("update", "set", "where");
-        }
-        #endregion
-
-        public SqlValue ForContains(string value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public SqlValue ForStartsWith(string value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public SqlValue ForEndsWith(string value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public SqlValue ForDateTime(DateTime dateTime)
-        {
-            throw new NotImplementedException();
-        }
-
-        public SqlValue ForList(IList list)
-        {
-            throw new NotImplementedException();
-        }
-
-    }
-}
-```
-
-2. 定义LiteSqlFactory类
+#### 定义LiteSqlFactory类
 
     下面代码是.NET 5下的代码
 
