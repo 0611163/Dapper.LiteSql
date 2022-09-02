@@ -734,8 +734,9 @@ using (var session = LiteSqlFactory.GetSession())
 {
     session.OnExecuting = (s, p) => Console.WriteLine(s); //打印SQL
 
-    List<SysUser> list = session.Queryable<SysUser>()
+    List<SysUser> list = session.Queryable<SysUser>() //Lambda写法
 
+        //拼SQL写法
         .Append<SysUser>(@" where t.create_userid = @CreateUserId 
             and t.password like @Password
             and t.id in @Ids",
@@ -746,17 +747,18 @@ using (var session = LiteSqlFactory.GetSession())
                 Ids = session.CreateSql().ForList(new List<int> { 1, 2, 9, 10, 11 })
             })
 
-        .Where(t => !t.UserName.Contains("管理员"))
+        .Where(t => !t.UserName.Contains("管理员")) //Lambda写法
 
-        .Append<SysUser>(@" and t.create_time >= @StartTime", new { StartTime = new DateTime(2020, 1, 1) })
+        .Append<SysUser>(@" and t.create_time >= @StartTime", new { StartTime = new DateTime(2020, 1, 1) }) //拼SQL写法
 
-        .Where<SysUser>(t => t.Id <= 20)
+        .Where<SysUser>(t => t.Id <= 20) //Lambda写法
 
-        .AppendIf(startTime.HasValue, " and t.create_time >= @StartTime ", new { StartTime = startTime })
+        .AppendIf(startTime.HasValue, " and t.create_time >= @StartTime ", new { StartTime = startTime }) //拼SQL写法
 
-        .Append(" and t.create_time <= @EndTime ", new { EndTime = new DateTime(2022, 8, 1) })
+        .Append(" and t.create_time <= @EndTime ", new { EndTime = new DateTime(2022, 8, 1) }) //拼SQL写法
 
-        .QueryList<SysUser>();
+        .QueryList<SysUser>(); //如果上一句是拼SQL写法，就用QueryList
+        //.ToList(); //如果上一句是Lambda写法，就用ToList
 
     long id = session.Queryable<SysUser>().Where(t => t.Id == 1).First().Id;
     Assert.IsTrue(id == 1);
