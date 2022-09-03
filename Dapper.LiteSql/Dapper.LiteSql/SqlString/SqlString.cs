@@ -22,14 +22,14 @@ namespace Dapper.LiteSql
 
         protected StringBuilder _sql = new StringBuilder();
 
-        protected List<DbParameter> _paramList = new List<DbParameter>();
+        protected Dictionary<string, DbParameter> _params = new Dictionary<string, DbParameter>();
 
         protected Regex _regex = new Regex(@"[@|:]([a-zA-Z_]{1}[a-zA-Z0-9_]+)", RegexOptions.IgnoreCase);
 
         /// <summary>
         /// 参数化查询的参数
         /// </summary>
-        public DbParameter[] Params { get { return _paramList.ToArray(); } }
+        public DbParameter[] Params { get { return _params.Values.ToArray(); } }
 
         /// <summary>
         /// 参数化查询的SQL
@@ -155,7 +155,8 @@ namespace Dapper.LiteSql
                     {
                         string markKey = _provider.GetParameterName(key, parameterType);
                         sql = sql.Replace(markKey, string.Format(sqlValue.Sql, markKey));
-                        _paramList.Add(_provider.GetDbParameter(key, sqlValue.Value));
+                        DbParameter param = _provider.GetDbParameter(key, sqlValue.Value);
+                        _params.Add(param.ParameterName, param);
                     }
                     else
                     {
@@ -166,13 +167,15 @@ namespace Dapper.LiteSql
                         for (int k = 0; k < valueList.Count; k++)
                         {
                             object item = valueList[k];
-                            _paramList.Add(_provider.GetDbParameter(keyArr[k], item));
+                            DbParameter param = _provider.GetDbParameter(keyArr[k], item);
+                            _params.Add(param.ParameterName, param);
                         }
                     }
                 }
                 else
                 {
-                    _paramList.Add(_provider.GetDbParameter(key, value));
+                    DbParameter param = _provider.GetDbParameter(key, value);
+                    _params.Add(param.ParameterName, param);
                 }
             }
 
@@ -200,8 +203,8 @@ namespace Dapper.LiteSql
         /// <param name="subSql">子SQL</param>
         public ISqlString Append(string sql, ISqlString subSql)
         {
-            _sql.Append(sql + " (" + subSql.SQL + ")");
-            _paramList.AddRange(subSql.Params);
+            string newSubSql = ParamsAddRange(subSql.Params, subSql.SQL);
+            _sql.Append(sql + " (" + newSubSql + ")");
             return this;
         }
 
@@ -212,8 +215,8 @@ namespace Dapper.LiteSql
         /// <param name="subSql">子SQL</param>
         public ISqlQueryable<T> Append<T>(string sql, ISqlString subSql) where T : new()
         {
-            _sql.Append(sql + " (" + subSql.SQL + ")");
-            _paramList.AddRange(subSql.Params);
+            string newSubSql = ParamsAddRange(subSql.Params, subSql.SQL);
+            _sql.Append(sql + " (" + newSubSql + ")");
             return this as ISqlQueryable<T>; ;
         }
         #endregion
@@ -386,6 +389,46 @@ namespace Dapper.LiteSql
                 sb.Replace(subSql, string.Empty);
             }
             return sb.ToString();
+        }
+        #endregion
+
+        #region ParamsAddRange
+        /// <summary>
+        /// 批量添加参数
+        /// </summary>
+        protected string ParamsAddRange(DbParameter[] cmdParams, string sql)
+        {
+            foreach (DbParameter param in cmdParams)
+            {
+                if (!_params.ContainsKey(param.ParameterName))
+                {
+                    _params.Add(param.ParameterName, param);
+                }
+                else
+                {
+                    string newName = param.ParameterName + "A";
+                    while (_params.ContainsKey(newName))
+                    {
+                        newName += "A";
+                    }
+                    DbParameter newParam = _provider.GetDbParameter(newName, param.Value);
+                    _params.Add(newParam.ParameterName, newParam);
+                    string oldParamName = _provider.GetParameterName(param.ParameterName, param.Value.GetType());
+                    string newParamName = _provider.GetParameterName(newParam.ParameterName, param.Value.GetType());
+                    int pos = sql.IndexOf(oldParamName);
+                    Regex regex = new Regex(oldParamName + "[)]{1}", RegexOptions.None);
+                    Regex regex2 = new Regex(oldParamName + "[\\s]{1}", RegexOptions.None);
+                    if (regex.IsMatch(sql))
+                    {
+                        sql = regex.Replace(sql, newParamName + ")", 1);
+                    }
+                    else
+                    {
+                        sql = regex2.Replace(sql, newParamName + " ", 1);
+                    }
+                }
+            }
+            return sql;
         }
         #endregion
 

@@ -103,7 +103,7 @@ using (var session = LiteSqlFactory.GetSession())
 1. 安装LiteSql
 
 ```text
-Install-Package Dapper.LiteSql -Version 1.6.16
+Install-Package Dapper.LiteSql -Version 1.6.17
 ```
 
 2. 安装对应的数据库引擎
@@ -746,7 +746,7 @@ using (var session = LiteSqlFactory.GetSession())
                 Ids = session.CreateSql().ForList(new List<int> { 1, 2, 9, 10, 11 })
             })
 
-        .Where(t => !t.UserName.Contains("管理员")) //Lambda写法
+        .Where(t => !t.RealName.Contains("管理员")) //Lambda写法
 
         .Append<SysUser>(@" and t.create_time >= @StartTime", new { StartTime = new DateTime(2020, 1, 1) }) //拼SQL写法
 
@@ -1205,7 +1205,7 @@ namespace PostgreSQLTest
 ```C#
 using ClickHouse.Client.ADO;
 using ClickHouse.Client.ADO.Parameters;
-using LiteSql;
+using Dapper.LiteSql;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -1541,89 +1541,6 @@ namespace ClickHouseTest
         }
         #endregion
 
-        #region 测试参数化查询
-        [TestMethod]
-        public void Test5Query()
-        {
-            int queryCount = 10;
-            using ISession session = LiteSqlFactory.GetSession();
-            session.OnExecuting = (s, p) => Console.WriteLine(s);
-
-            List<PeopleFace> list = session.CreateSql("select * from people_face_replica t")
-                .Append("where t.captured_time <= @EndTime", DateTime.Now)
-                .Append("order by captured_time desc")
-                .Append("limit " + queryCount)
-                .QueryList<PeopleFace>();
-
-            if (list.Count != queryCount)
-            {
-                Console.WriteLine(list.Count + " / " + queryCount);
-            }
-            else
-            {
-                Console.WriteLine("总数=" + list.Count);
-            }
-            Assert.IsTrue(list.Count == queryCount);
-
-            list.ForEach(item => Console.WriteLine(ModelToStringUtil.ToString(item)));
-        }
-        #endregion
-
-        #region 测试参数化查询(参数传匿名对象)
-        [TestMethod]
-        public void Test5Query2()
-        {
-            int queryCount = 10;
-            using ISession session = LiteSqlFactory.GetSession();
-            session.OnExecuting = (s, p) => Console.WriteLine(s);
-
-            List<PeopleFace> list = session.CreateSql("select * from people_face_replica t")
-                .Append("where t.captured_time <= @EndTime", new { EndTime = DateTime.Now })
-                .Append("order by captured_time desc")
-                .AppendFormat("limit {0}", queryCount)
-                .QueryList<PeopleFace>();
-
-            if (list.Count != queryCount)
-            {
-                Console.WriteLine(list.Count + " / " + queryCount);
-            }
-            else
-            {
-                Console.WriteLine("总数=" + list.Count);
-            }
-            Assert.IsTrue(list.Count == queryCount);
-
-            list.ForEach(item => Console.WriteLine(ModelToStringUtil.ToString(item)));
-        }
-        #endregion
-
-        #region 测试参数化查询(Lambda表达式)
-        [TestMethod]
-        public void Test6QueryByLambda()
-        {
-            int queryCount = 10;
-            using ISession session = LiteSqlFactory.GetSession();
-            session.OnExecuting = (s, p) => Console.WriteLine(s);
-
-            List<PeopleFace> list = session.Queryable<PeopleFace>()
-                .Where(t => t.CapturedTime <= DateTime.Now)
-                .OrderByDescending(t => t.CapturedTime)
-                .ToPageList(1, queryCount);
-
-            if (list.Count != queryCount)
-            {
-                Console.WriteLine(list.Count + " / " + queryCount);
-            }
-            else
-            {
-                Console.WriteLine("总数=" + list.Count);
-            }
-            Assert.IsTrue(list.Count == queryCount);
-
-            list.ForEach(item => Console.WriteLine(ModelToStringUtil.ToString(item)));
-        }
-        #endregion
-
         #region 测试插入(ADO.NET原生)
         [TestMethod]
         public void Test2Insert1()
@@ -1828,6 +1745,110 @@ namespace ClickHouseTest
             Console.WriteLine("删除后数量=" + count);
 
             Assert.IsTrue(count == 0);
+        }
+        #endregion
+
+        #region 测试参数化查询
+        [TestMethod]
+        public void Test5Query()
+        {
+            int queryCount = 10;
+            using ISession session = LiteSqlFactory.GetSession();
+            session.OnExecuting = (s, p) => Console.WriteLine(s);
+
+            List<PeopleFace> list = session.CreateSql("select * from people_face_replica t")
+                .Append("where t.captured_time <= @EndTime", DateTime.Now)
+                .Append("order by captured_time desc")
+                .Append("limit " + queryCount)
+                .QueryList<PeopleFace>();
+
+            if (list.Count != queryCount)
+            {
+                Console.WriteLine(list.Count + " / " + queryCount);
+            }
+            else
+            {
+                Console.WriteLine("总数=" + list.Count);
+            }
+            Assert.IsTrue(list.Count == queryCount);
+
+            list.ForEach(item => Console.WriteLine(ModelToStringUtil.ToString(item)));
+        }
+        #endregion
+
+        #region 测试参数化查询(参数传匿名对象)
+        [TestMethod]
+        public void Test5Query2()
+        {
+            int queryCount = 10;
+            using ISession session = LiteSqlFactory.GetSession();
+            session.OnExecuting = (s, p) => Console.WriteLine(s);
+
+            List<PeopleFace> list = session.CreateSql("select * from people_face_replica t")
+                .Append("where t.captured_time <= @EndTime", new { EndTime = DateTime.Now })
+                .Append("order by captured_time desc")
+                .AppendFormat("limit {0}", queryCount)
+                .QueryList<PeopleFace>();
+
+            if (list.Count != queryCount)
+            {
+                Console.WriteLine(list.Count + " / " + queryCount);
+            }
+            else
+            {
+                Console.WriteLine("总数=" + list.Count);
+            }
+            Assert.IsTrue(list.Count == queryCount);
+
+            list.ForEach(item => Console.WriteLine(ModelToStringUtil.ToString(item)));
+        }
+        #endregion
+
+        #region 测试参数化查询(Lambda表达式)
+        [TestMethod]
+        public void Test6QueryByLambda()
+        {
+            int queryCount = 10;
+            using ISession session = LiteSqlFactory.GetSession();
+            session.OnExecuting = (s, p) => Console.WriteLine(s);
+
+            List<PeopleFace> list = session.Queryable<PeopleFace>()
+                .Where(t => t.CapturedTime <= DateTime.Now)
+                .OrderByDescending(t => t.CapturedTime)
+                .ToPageList(1, queryCount);
+
+            if (list.Count != queryCount)
+            {
+                Console.WriteLine(list.Count + " / " + queryCount);
+            }
+            else
+            {
+                Console.WriteLine("总数=" + list.Count);
+            }
+            Assert.IsTrue(list.Count == queryCount);
+
+            list.ForEach(item => Console.WriteLine(ModelToStringUtil.ToString(item)));
+        }
+        #endregion
+
+        #region 测试参数化查询(Lambda表达式同名参数)
+        [TestMethod]
+        public void Test6QueryByLambda2()
+        {
+            using ISession session = LiteSqlFactory.GetSession();
+            session.OnExecuting = (s, p) => Console.WriteLine(s);
+
+            var sql = session.Queryable<PeopleFace>()
+                .Where(t => t.CapturedTime <= DateTime.Now && t.CapturedTime >= new DateTime(2022, 1, 1));
+
+            List<PeopleFace> list = session.Queryable<PeopleFace>()
+                .Where(t => t.CapturedTime <= DateTime.Now && t.CapturedTime >= new DateTime(2022, 1, 1))
+                .Append<PeopleFace>(" union all ", sql)
+                .ToList();
+
+            Console.WriteLine("总数=" + list.Count);
+            list.ForEach(item => Console.WriteLine(ModelToStringUtil.ToString(item)));
+            Assert.IsTrue(list.Count > 0);
         }
         #endregion
 

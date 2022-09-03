@@ -103,6 +103,11 @@ namespace Dapper.LiteSql
                 DbParameter[] dbParameters;
                 string result = " (" + condition.VisitLambda(expression, out dbParameters) + ")";
 
+                if (dbParameters != null)
+                {
+                    result = ParamsAddRange(dbParameters, result);
+                }
+
                 if (RemoveSubSqls(_sql.ToString()).Contains("where"))
                 {
                     _sql.Append(" and " + result);
@@ -110,10 +115,6 @@ namespace Dapper.LiteSql
                 else
                 {
                     _sql.Append(" where " + result);
-                }
-                if (dbParameters != null)
-                {
-                    _paramList.AddRange(dbParameters.ToList());
                 }
             }
             catch (Exception ex)
@@ -139,6 +140,11 @@ namespace Dapper.LiteSql
                 DbParameter[] dbParameters;
                 string result = " (" + condition.VisitLambda(expression, out dbParameters) + ")";
 
+                if (dbParameters != null)
+                {
+                    result = ParamsAddRange(dbParameters, result);
+                }
+
                 if (RemoveSubSqls(_sql.ToString()).Contains("where"))
                 {
                     _sql.Append(" and " + result);
@@ -146,10 +152,6 @@ namespace Dapper.LiteSql
                 else
                 {
                     _sql.Append(" where " + result);
-                }
-                if (dbParameters != null)
-                {
-                    _paramList.AddRange(dbParameters.ToList());
                 }
             }
             catch (Exception ex)
@@ -175,6 +177,11 @@ namespace Dapper.LiteSql
                 DbParameter[] dbParameters;
                 string result = " (" + condition.VisitLambda(expression, out dbParameters) + ")";
 
+                if (dbParameters != null)
+                {
+                    result = ParamsAddRange(dbParameters, result);
+                }
+
                 if (RemoveSubSqls(_sql.ToString()).Contains("where"))
                 {
                     _sql.Append(" and " + result);
@@ -182,10 +189,6 @@ namespace Dapper.LiteSql
                 else
                 {
                     _sql.Append(" where " + result);
-                }
-                if (dbParameters != null)
-                {
-                    _paramList.AddRange(dbParameters.ToList());
                 }
             }
             catch (Exception ex)
@@ -211,6 +214,11 @@ namespace Dapper.LiteSql
                 DbParameter[] dbParameters;
                 string result = " (" + condition.VisitLambda(expression, out dbParameters) + ")";
 
+                if (dbParameters != null)
+                {
+                    result = ParamsAddRange(dbParameters, result);
+                }
+
                 if (RemoveSubSqls(_sql.ToString()).Contains("where"))
                 {
                     _sql.Append(" and " + result);
@@ -218,10 +226,6 @@ namespace Dapper.LiteSql
                 else
                 {
                     _sql.Append(" where " + result);
-                }
-                if (dbParameters != null)
-                {
-                    _paramList.AddRange(dbParameters.ToList());
                 }
             }
             catch (Exception ex)
@@ -341,14 +345,15 @@ namespace Dapper.LiteSql
                 _sql = new StringBuilder(string.Format("select {0} from {1} {2}", sql + subSql.SQL, _dbSession.GetTableName(_provider, typeof(T)), alias));
             }
 
-            if (!string.IsNullOrWhiteSpace(subSql.SQL)
-                && subSql.SQL.Contains("select ")
-                && subSql.SQL.Contains(" from "))
+            string newSubSql = ParamsAddRange(subSql.Params, subSql.SQL);
+
+            if (!string.IsNullOrWhiteSpace(newSubSql)
+                && newSubSql.Contains("select ")
+                && newSubSql.Contains(" from "))
             {
-                _subSqls.Add(subSql.SQL);
+                _subSqls.Add(newSubSql);
             }
 
-            _paramList.AddRange(subSql.Params);
             return this;
         }
 

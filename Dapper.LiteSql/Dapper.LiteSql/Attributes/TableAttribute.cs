@@ -12,6 +12,9 @@ namespace Dapper.LiteSql
     [Serializable, AttributeUsage(AttributeTargets.Class)]
     public class TableAttribute : Attribute
     {
+        /// <summary>
+        /// 数据库表名
+        /// </summary>
         public string TableName { get; set; }
 
         /// <summary>
