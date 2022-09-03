@@ -199,24 +199,40 @@ namespace Dapper.LiteSql
         /// <summary>
         /// 追加参数化SQL
         /// </summary>
-        /// <param name="sql">SQL</param>
+        /// <param name="sql">SQL，插入到子SQL的前面，或者插入到{0}的位置</param>
         /// <param name="subSql">子SQL</param>
         public ISqlString Append(string sql, ISqlString subSql)
         {
             string newSubSql = ParamsAddRange(subSql.Params, subSql.SQL);
-            _sql.Append(sql + " (" + newSubSql + ")");
+            if (sql.Contains("{0}"))
+            {
+                sql = sql.Replace("{0}", newSubSql);
+            }
+            else
+            {
+                sql = sql + " (" + newSubSql + ")";
+            }
+            _sql.Append(sql);
             return this;
         }
 
         /// <summary>
         /// 追加参数化SQL
         /// </summary>
-        /// <param name="sql">SQL</param>
+        /// <param name="sql">SQL，插入到子SQL的前面，或者插入到{0}的位置</param>
         /// <param name="subSql">子SQL</param>
         public ISqlQueryable<T> Append<T>(string sql, ISqlString subSql) where T : new()
         {
             string newSubSql = ParamsAddRange(subSql.Params, subSql.SQL);
-            _sql.Append(sql + " (" + newSubSql + ")");
+            if (sql.Contains("{0}"))
+            {
+                sql = sql.Replace("{0}", newSubSql);
+            }
+            else
+            {
+                sql = sql + " (" + newSubSql + ")";
+            }
+            _sql.Append(sql);
             return ConvertToQueryable<T>(this, "Append<T>");
         }
         #endregion
