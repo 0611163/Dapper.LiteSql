@@ -103,7 +103,7 @@ using (var session = LiteSqlFactory.GetSession())
 1. 安装LiteSql
 
 ```text
-Install-Package Dapper.LiteSql -Version 1.6.15
+Install-Package Dapper.LiteSql -Version 1.6.16
 ```
 
 2. 安装对应的数据库引擎
@@ -620,9 +620,9 @@ public List<BsOrder> GetListExt(int? status, string remark, DateTime? startTime,
 
         sql.AppendIf(!string.IsNullOrWhiteSpace(remark), " and t.remark like @remark", sql.ForContains(remark));
 
-        sql.AppendIf(startTime.HasValue, " and t.order_time >= @startTime ", sql.ForDateTime(startTime.Value));
+        sql.AppendIf(startTime.HasValue, " and t.order_time >= @startTime ", () => sql.ForDateTime(startTime.Value));
 
-        sql.AppendIf(endTime.HasValue, " and t.order_time <= @endTime ", sql.ForDateTime(endTime.Value));
+        sql.AppendIf(endTime.HasValue, " and t.order_time <= @endTime ", () => sql.ForDateTime(endTime.Value));
 
         sql.Append(" and t.id in @ids ", sql.ForList(ids.Split(',').ToList()));
 
@@ -1515,9 +1515,7 @@ namespace Models
 #### 单元测试代码
 
 ```C#
-using LiteSql;
-using System.Data.Common;
-using System.Runtime.InteropServices;
+using Dapper.LiteSql;
 using Models;
 using Utils;
 using ClickHouse.Client.ADO;
@@ -1537,13 +1535,13 @@ namespace ClickHouseTest
             using ISession session = LiteSqlFactory.GetSession();
             session.OnExecuting = (s, p) => Console.WriteLine(s);
 
-            long count = session.QueryCount("select * from people_face_replica");
+            long count = session.Queryable<PeopleFace>().Count();
             Console.WriteLine("总数=" + count.ToString("# #### #### ####"));
             Assert.IsTrue(count > 0);
         }
         #endregion
 
-        #region 测试查询
+        #region 测试参数化查询
         [TestMethod]
         public void Test5Query()
         {
@@ -1552,9 +1550,9 @@ namespace ClickHouseTest
             session.OnExecuting = (s, p) => Console.WriteLine(s);
 
             List<PeopleFace> list = session.CreateSql("select * from people_face_replica t")
-                .AppendFormat(" where t.captured_time < toDateTime('{0}')", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"))
-                .Append(" order by captured_time desc ")
-                .Append(" limit " + queryCount)
+                .Append("where t.captured_time <= @EndTime", DateTime.Now)
+                .Append("order by captured_time desc")
+                .Append("limit " + queryCount)
                 .QueryList<PeopleFace>();
 
             if (list.Count != queryCount)
@@ -1571,88 +1569,16 @@ namespace ClickHouseTest
         }
         #endregion
 
-        #region 测试参数化查询 toDateTime({EndTime:String})
+        #region 测试参数化查询(参数传匿名对象)
         [TestMethod]
-        public void Test5QueryByParam()
-        {
-            int queryCount = 10;
-            using ISession session = LiteSqlFactory.GetSession();
-            session.OnExecuting = (s, p) => Console.WriteLine(s);
-
-            ClickHouseDbParameter[] parameter = new ClickHouseDbParameter[1];
-            parameter[0] = new ClickHouseDbParameter();
-            parameter[0].ParameterName = "EndTime";
-            parameter[0].Value = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-
-            StringBuilder sql = new StringBuilder(@"
-                select * 
-                from people_face_replica t
-                where t.captured_time < toDateTime({EndTime:String})
-                order by captured_time desc ")
-                .AppendFormat(" limit {0}", queryCount);
-
-            List<PeopleFace> list = session.QueryList<PeopleFace>(sql.ToString(), parameter);
-
-            if (list.Count != queryCount)
-            {
-                Console.WriteLine(list.Count + " / " + queryCount);
-            }
-            else
-            {
-                Console.WriteLine("总数=" + list.Count);
-            }
-            Assert.IsTrue(list.Count == queryCount);
-
-            list.ForEach(item => Console.WriteLine(ModelToStringUtil.ToString(item)));
-        }
-        #endregion
-
-        #region 测试参数化查询 {EndTime:DateTime}
-        [TestMethod]
-        public void Test5QueryByParam2()
-        {
-            int queryCount = 10;
-            using ISession session = LiteSqlFactory.GetSession();
-            session.OnExecuting = (s, p) => Console.WriteLine(s);
-
-            ClickHouseDbParameter[] parameter = new ClickHouseDbParameter[1];
-            parameter[0] = new ClickHouseDbParameter();
-            parameter[0].ParameterName = "EndTime";
-            parameter[0].Value = DateTime.Now;
-
-            StringBuilder sql = new StringBuilder(@"
-                select * 
-                from people_face_replica t
-                where t.captured_time < {EndTime:DateTime}
-                order by captured_time desc ")
-                .AppendFormat(" limit {0}", queryCount);
-
-            List<PeopleFace> list = session.QueryList<PeopleFace>(sql.ToString(), parameter);
-
-            if (list.Count != queryCount)
-            {
-                Console.WriteLine(list.Count + " / " + queryCount);
-            }
-            else
-            {
-                Console.WriteLine("总数=" + list.Count);
-            }
-            Assert.IsTrue(list.Count == queryCount);
-
-            list.ForEach(item => Console.WriteLine(ModelToStringUtil.ToString(item)));
-        }
-        #endregion
-
-        #region 测试参数化查询 使用SqlString
-        [TestMethod]
-        public void Test5QueryByParam3()
+        public void Test5Query2()
         {
             int queryCount = 10;
             using ISession session = LiteSqlFactory.GetSession();
             session.OnExecuting = (s, p) => Console.WriteLine(s);
 
             List<PeopleFace> list = session.CreateSql("select * from people_face_replica t")
-                .Append("where t.captured_time < @EndTime", new { EndTime = DateTime.Now })
+                .Append("where t.captured_time <= @EndTime", new { EndTime = DateTime.Now })
                 .Append("order by captured_time desc")
                 .AppendFormat("limit {0}", queryCount)
                 .QueryList<PeopleFace>();
@@ -1671,7 +1597,7 @@ namespace ClickHouseTest
         }
         #endregion
 
-        #region 测试参数化查询 Lambda
+        #region 测试参数化查询(Lambda表达式)
         [TestMethod]
         public void Test6QueryByLambda()
         {
@@ -1680,7 +1606,7 @@ namespace ClickHouseTest
             session.OnExecuting = (s, p) => Console.WriteLine(s);
 
             List<PeopleFace> list = session.Queryable<PeopleFace>()
-                .Where(t => t.CapturedTime < DateTime.Now)
+                .Where(t => t.CapturedTime <= DateTime.Now)
                 .OrderByDescending(t => t.CapturedTime)
                 .ToPageList(1, queryCount);
 
@@ -1698,7 +1624,7 @@ namespace ClickHouseTest
         }
         #endregion
 
-        #region 测试插入(原生)
+        #region 测试插入(ADO.NET原生)
         [TestMethod]
         public void Test2Insert1()
         {
@@ -1713,9 +1639,9 @@ namespace ClickHouseTest
                 values ({captured_time:DateTime}, {camera_id:String}, {camera_fun_type:String}, {face_id:String}, {data_source3:String}, {panoramic_image_url:String}, {portrait_image_url:String}, {event:String})";
 
             command.Parameters.Add(new ClickHouseDbParameter() { ParameterName = "captured_time", Value = new System.DateTime(2022, 1, 1) });
-            command.Parameters.Add(new ClickHouseDbParameter() { ParameterName = "camera_id", Value = "34010449001190310342" });
+            command.Parameters.Add(new ClickHouseDbParameter() { ParameterName = "camera_id", Value = "3401040578689" });
             command.Parameters.Add(new ClickHouseDbParameter() { ParameterName = "camera_fun_type", Value = "2" });
-            command.Parameters.Add(new ClickHouseDbParameter() { ParameterName = "face_id", Value = "3401044900119031020220826120000000000635567" });
+            command.Parameters.Add(new ClickHouseDbParameter() { ParameterName = "face_id", Value = "3401044900119031678978600000008888" });
             command.Parameters.Add(new ClickHouseDbParameter() { ParameterName = "event", Value = "UPSERT" });
             command.Parameters.Add(new ClickHouseDbParameter() { ParameterName = "panoramic_image_url", Value = "panoramic_image_url" });
             command.Parameters.Add(new ClickHouseDbParameter() { ParameterName = "portrait_image_url", Value = "portrait_image_url" });
@@ -1791,7 +1717,7 @@ namespace ClickHouseTest
                 session.Insert(peopleFaceList);
             }
 
-            long count = session.Queryable<PeopleFace>().Where(t => t.CapturedTime >= time.Value && t.CameraId.StartsWith(pre)).Count();
+            long count = session.Queryable<PeopleFace>().Where(t => t.CapturedTime >= time && t.CameraId.StartsWith(pre)).Count();
             Console.WriteLine("count=" + count);
             Assert.IsTrue(count > 0);
         }
@@ -1808,8 +1734,9 @@ namespace ClickHouseTest
             using ISession session = LiteSqlFactory.GetSession();
             session.OnExecuting = (s, p) => Console.WriteLine(s);
 
-            PeopleFace old = session.CreateSql("select * from people_face_replica where camera_id=@CameraId", new { CameraId = "34010400000000000000" }).Query<PeopleFace>();
+            PeopleFace old = session.Queryable<PeopleFace>().Where(t => t.CameraId == "34010400000000000000").First();
 
+            session.AttachOld(old);
             string newExtraInfo = DateTime.Now.ToString("yyyyMMddHHmmss");
             old.ExtraInfo = newExtraInfo;
             session.Update(old);
@@ -1835,11 +1762,12 @@ namespace ClickHouseTest
             using ISession session = LiteSqlFactory.GetSession();
             session.OnExecuting = (s, p) => Console.WriteLine(s);
 
-            List<PeopleFace> oldList = session.CreateSql("select * from people_face_replica where captured_time>@Time", new { Time = DateTime.Now.AddMinutes(-1) }).QueryList<PeopleFace>();
+            List<PeopleFace> oldList = session.Queryable<PeopleFace>().Where(t => t.CapturedTime > DateTime.Now.AddMinutes(-1)).QueryList<PeopleFace>();
 
             string newExtraInfo = DateTime.Now.ToString("yyyyMMddHHmmss");
             oldList.ForEach(old =>
             {
+                session.AttachOld(old);
                 old.ExtraInfo = newExtraInfo;
                 session.Update(old);
             });
@@ -1868,7 +1796,7 @@ namespace ClickHouseTest
             string newExtraInfo = DateTime.Now.AddYears(-1).ToString("yyyyMMddHHmmss");
 
             //可以这样批量更新
-            session.CreateSql("alter table people_face_replica update extra_info=@ExtraInfo where 1=1", new { ExtraInfo = newExtraInfo }).Execute();
+            session.CreateSql<PeopleFace>("alter table people_face_replica update extra_info=@ExtraInfo where captured_time <= @Time", new { ExtraInfo = newExtraInfo, Time = DateTime.Now }).Execute();
 
             Thread.Sleep(100);
 

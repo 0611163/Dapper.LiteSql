@@ -27,7 +27,7 @@ namespace Dapper.LiteSqlTest
         [TestMethod]
         public void TestQueryByLambda1()
         {
-            int status = 0;
+            int? status = 0;
             string remark = "订单";
             DateTime? startTime = new DateTime(2010, 1, 1);
             DateTime? endTime = DateTime.Now.AddDays(1);
@@ -44,8 +44,8 @@ namespace Dapper.LiteSqlTest
 
                 List<BsOrder> list = sql.Where(t => t.Status == status
                     && t.Remark.Contains(remark.ToString())
-                    && t.OrderTime >= startTime.Value
-                    && t.OrderTime <= endTime.Value)
+                    && t.OrderTime >= startTime
+                    && t.OrderTime <= endTime)
                     .OrderByDescending(t => t.OrderTime).OrderBy(t => t.Id)
                     .ToList();
 
