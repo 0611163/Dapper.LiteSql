@@ -89,13 +89,21 @@ namespace Dapper.LiteSql
         /// </summary>
         public void Insert<T>(List<T> list)
         {
-            for (int i = 0; i < list.Count; i += 500)
+            Insert<T>(list, 500);
+        }
+
+        /// <summary>
+        /// 批量添加
+        /// </summary>
+        public void Insert<T>(List<T> list, int pageSize)
+        {
+            for (int i = 0; i < list.Count; i += pageSize)
             {
                 StringBuilder strSql = new StringBuilder();
                 int savedCount = 0;
                 DbParameter[] parameters = null;
 
-                var listPage = list.Skip(i).Take(500).ToList();
+                var listPage = list.Skip(i).Take(pageSize).ToList();
 
                 PrepareInsertSql<T>(listPage, _autoIncrement, ref strSql, ref parameters, ref savedCount);
 
@@ -110,15 +118,23 @@ namespace Dapper.LiteSql
         /// <summary>
         /// 批量添加
         /// </summary>
-        public async Task InsertAsync<T>(List<T> list)
+        public Task InsertAsync<T>(List<T> list)
         {
-            for (int i = 0; i < list.Count; i += 500)
+            return InsertAsync<T>(list, 500);
+        }
+
+        /// <summary>
+        /// 批量添加
+        /// </summary>
+        public async Task InsertAsync<T>(List<T> list, int pageSize)
+        {
+            for (int i = 0; i < list.Count; i += pageSize)
             {
                 StringBuilder strSql = new StringBuilder();
                 int savedCount = 0;
                 DbParameter[] parameters = null;
 
-                var listPage = list.Skip(i).Take(500).ToList();
+                var listPage = list.Skip(i).Take(pageSize).ToList();
 
                 PrepareInsertSql<T>(listPage, _autoIncrement, ref strSql, ref parameters, ref savedCount);
 

@@ -193,7 +193,7 @@ namespace Dapper.LiteSql
         /// <param name="args">参数(支持多个参数或者把多个参数放在一个匿名对象中)</param>
         public ISqlQueryable<T> Append<T>(string sql, params object[] args) where T : new()
         {
-            return Append(sql, args) as ISqlQueryable<T>;
+            return ConvertToQueryable<T>(Append(sql, args), "Append<T>");
         }
 
         /// <summary>
@@ -217,7 +217,7 @@ namespace Dapper.LiteSql
         {
             string newSubSql = ParamsAddRange(subSql.Params, subSql.SQL);
             _sql.Append(sql + " (" + newSubSql + ")");
-            return this as ISqlQueryable<T>; ;
+            return ConvertToQueryable<T>(this, "Append<T>");
         }
         #endregion
 
@@ -230,7 +230,7 @@ namespace Dapper.LiteSql
         /// <param name="args">参数(支持多个参数或者把多个参数放在一个匿名对象中)</param>
         public ISqlQueryable<T> AppendIf<T>(bool condition, string sql, params object[] args) where T : new()
         {
-            return AppendIf(condition, sql, args) as ISqlQueryable<T>;
+            return ConvertToQueryable<T>(AppendIf(condition, sql, args), "AppendIf<T>");
         }
 
         /// <summary>
@@ -241,7 +241,7 @@ namespace Dapper.LiteSql
         /// <param name="argsFunc">参数</param>
         public ISqlQueryable<T> AppendIf<T>(bool condition, string sql, params Func<object>[] argsFunc) where T : new()
         {
-            return AppendIf(condition, sql, argsFunc) as ISqlQueryable<T>;
+            return ConvertToQueryable<T>(AppendIf(condition, sql, argsFunc), "AppendIf<T>");
         }
 
         /// <summary>
@@ -291,7 +291,7 @@ namespace Dapper.LiteSql
         /// <param name="args">参数</param>
         public ISqlQueryable<T> AppendFormat<T>(string sql, params object[] args) where T : new()
         {
-            return AppendFormat(sql, args) as ISqlQueryable<T>;
+            return ConvertToQueryable<T>(AppendFormat(sql, args), "AppendFormat<T>");
         }
 
         /// <summary>
@@ -429,6 +429,29 @@ namespace Dapper.LiteSql
                 }
             }
             return sql;
+        }
+        #endregion
+
+        #region ConvertToQueryable<T>
+        /// <summary>
+        /// 转成ISqlQueryable
+        /// </summary>
+        private ISqlQueryable<T> ConvertToQueryable<T>(ISqlString sqlString, string message) where T : new()
+        {
+            if (sqlString is ISqlQueryable<T>)
+            {
+                return sqlString as ISqlQueryable<T>;
+            }
+            else
+            {
+                string typeName = string.Empty;
+                Type[] genericArgs = sqlString.GetType().GetGenericArguments();
+                if (genericArgs.Length > 0)
+                {
+                    typeName = genericArgs[0].Name;
+                }
+                throw new Exception(message + "泛型类型不匹配，应为：" + typeName + "，实际为：" + typeof(T).Name);
+            }
         }
         #endregion
 

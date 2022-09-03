@@ -474,8 +474,8 @@ namespace Dapper.LiteSqlTest
             {
                 session.OnExecuting = (s, p) => Console.WriteLine(s); //打印SQL
 
-                List<SysUser> list = session.CreateSql<SysUser>()
-                    .Select(t => new
+                List<SysUser> list = session.Queryable<SysUser>(
+                    t => new
                     {
                         t.RealName,
                         t.CreateUserid
@@ -517,6 +517,35 @@ namespace Dapper.LiteSqlTest
                             where o.order_userid = t.id
                             and o.status = @Status
                         ) as OrderCount", new { Status = 0 }))
+                    .Where(t => t.Id >= 0)
+                    .ToList();
+
+                foreach (SysUser item in list)
+                {
+                    Console.WriteLine(ModelToStringUtil.ToString(item));
+                }
+                Assert.IsTrue(list.Count > 0);
+            }
+        }
+
+        [TestMethod]
+        public void TestQueryByLambda15()
+        {
+            using (var session = LiteSqlFactory.GetSession())
+            {
+                session.OnExecuting = (s, p) => Console.WriteLine(s); //打印SQL
+
+                var subSql = session.Queryable<BsOrder>(o => "count(1)")
+                    .WhereJoin<SysUser>((o, t) => o.OrderUserid == t.Id)
+                    .Where<BsOrder>(o => o.Status == 0);
+
+                List<SysUser> list = session.Queryable<SysUser>(
+                    t => new
+                    {
+                        t.RealName,
+                        t.CreateUserid
+                    })
+                    .Select("({0}) as OrderCount", subSql)
                     .Where(t => t.Id >= 0)
                     .ToList();
 

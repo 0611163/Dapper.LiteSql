@@ -29,6 +29,16 @@ namespace Dapper.LiteSql
         Task UpdateAsync<T>(List<T> list);
 
         /// <summary>
+        /// 批量修改
+        /// </summary>
+        void Update<T>(List<T> list, int pageSize);
+
+        /// <summary>
+        /// 批量修改
+        /// </summary>
+        Task UpdateAsync<T>(List<T> list, int pageSize);
+
+        /// <summary>
         /// 附加更新前的旧数据，只更新数据发生变化的字段
         /// </summary>
         void AttachOld<T>(T obj) where T : new();

@@ -122,9 +122,17 @@ namespace Dapper.LiteSql
         /// </summary>
         public void Update<T>(List<T> list)
         {
-            for (int i = 0; i < list.Count; i += 500)
+            Update<T>(list, 500);
+        }
+
+        /// <summary>
+        /// 批量修改
+        /// </summary>
+        public void Update<T>(List<T> list, int pageSize)
+        {
+            for (int i = 0; i < list.Count; i += pageSize)
             {
-                List<T> subList = list.Skip(i).Take(500).ToList();
+                List<T> subList = list.Skip(i).Take(pageSize).ToList();
 
                 List<T> newList = new List<T>();
                 List<T> oldList = new List<T>();
@@ -159,11 +167,19 @@ namespace Dapper.LiteSql
         /// <summary>
         /// 批量修改
         /// </summary>
-        public async Task UpdateAsync<T>(List<T> list)
+        public Task UpdateAsync<T>(List<T> list)
         {
-            for (int i = 0; i < list.Count; i += 500)
+            return UpdateAsync<T>(list, 500);
+        }
+
+        /// <summary>
+        /// 批量修改
+        /// </summary>
+        public async Task UpdateAsync<T>(List<T> list, int pageSize)
+        {
+            for (int i = 0; i < list.Count; i += pageSize)
             {
-                List<T> subList = list.Skip(i).Take(500).ToList();
+                List<T> subList = list.Skip(i).Take(pageSize).ToList();
 
                 List<T> newList = new List<T>();
                 List<T> oldList = new List<T>();
