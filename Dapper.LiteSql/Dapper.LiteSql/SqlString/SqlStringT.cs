@@ -117,9 +117,9 @@ namespace Dapper.LiteSql
                     _sql.Append(" where " + result);
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                throw ex;
+                throw;
             }
 
             return this;
@@ -154,9 +154,9 @@ namespace Dapper.LiteSql
                     _sql.Append(" where " + result);
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                throw ex;
+                throw;
             }
 
             return this;
@@ -191,9 +191,9 @@ namespace Dapper.LiteSql
                     _sql.Append(" where " + result);
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                throw ex;
+                throw;
             }
 
             return this;
@@ -228,9 +228,9 @@ namespace Dapper.LiteSql
                     _sql.Append(" where " + result);
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                throw ex;
+                throw;
             }
 
             return this;

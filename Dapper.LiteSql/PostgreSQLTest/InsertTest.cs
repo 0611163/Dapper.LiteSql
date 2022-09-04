@@ -45,7 +45,7 @@ namespace PostgreSQLTest
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
-                throw ex;
+                throw;
             }
         }
 
@@ -91,7 +91,7 @@ namespace PostgreSQLTest
                 catch (Exception ex)
                 {
                     session.RollbackTransaction();
-                    throw ex;
+                    throw;
                 }
             }
         }

@@ -103,7 +103,7 @@ using (var session = LiteSqlFactory.GetSession())
 1. 安装LiteSql
 
 ```text
-Install-Package Dapper.LiteSql -Version 1.6.17
+Install-Package Dapper.LiteSql -Version 1.6.18
 ```
 
 2. 安装对应的数据库引擎
@@ -777,9 +777,9 @@ using (var session = LiteSqlFactory.GetSession())
 {
     session.OnExecuting = (s, p) => Console.WriteLine(s); //打印SQL
 
-    var subSql = session.CreateSql<SysUser>("select t.Id from sys_user t").Where(t => !t.RealName.Contains("管理员"));
+    var subSql = session.CreateSql<SysUser>().Select(t => new { t.Id }).Where(t => !t.RealName.Contains("管理员"));
 
-    var subSql2 = session.CreateSql<SysUser>("select t.Id from sys_user t").Where(t => t.Id <= 20);
+    var subSql2 = session.CreateSql<SysUser>().Select(t => new { t.Id }).Where(t => t.Id <= 20);
 
     var sql = session.Queryable<SysUser>()
 
@@ -816,13 +816,13 @@ using (var session = LiteSqlFactory.GetSession())
 {
     session.OnExecuting = (s, p) => Console.WriteLine(s); //打印SQL
 
-    List<SysUser> list = session.CreateSql<SysUser>()
-        .Select(session.CreateSql("count(id) as Count"))
-        .Select(t => new
+    List<SysUser> list = session.Queryable<SysUser>(
+        t => new
         {
             t.RealName,
             t.CreateUserid
         })
+        .Select("count(id) as Count")
         .Where(t => t.Id >= 0)
         .Append<SysUser>("group by t.real_name, t.create_userid")
         .Append<SysUser>("having real_name like @Name1 or real_name like @Name2", new
@@ -1614,25 +1614,22 @@ namespace ClickHouseTest
             Random rnd = new Random();
             string pre = rnd.NextInt64(0, 10000000000).ToString();
             DateTime? time = null;
-            for (int k = 0; k < 2; k++)
+            List<PeopleFace> peopleFaceList = new List<PeopleFace>();
+            for (int i = 0; i < 10; i++)
             {
-                List<PeopleFace> peopleFaceList = new List<PeopleFace>();
-                for (int i = 0; i < 5; i++)
-                {
-                    PeopleFace peopleFace = new PeopleFace();
-                    peopleFace.CapturedTime = DateTime.Now;
-                    peopleFace.CameraId = pre + "_" + i;
-                    peopleFace.FaceId = "340104490011903" + i;
-                    peopleFace.CameraFunType = "2";
-                    peopleFace.PanoramicImageUrl = "PanoramicImageUrl";
-                    peopleFace.PortraitImageUrl = "PortraitImageUrl";
-                    peopleFace.Event = "UPSERT";
-                    peopleFaceList.Add(peopleFace);
+                PeopleFace peopleFace = new PeopleFace();
+                peopleFace.CapturedTime = DateTime.Now;
+                peopleFace.CameraId = pre + "_" + i;
+                peopleFace.FaceId = "340104490011903" + i;
+                peopleFace.CameraFunType = "2";
+                peopleFace.PanoramicImageUrl = "PanoramicImageUrl";
+                peopleFace.PortraitImageUrl = "PortraitImageUrl";
+                peopleFace.Event = "UPSERT";
+                peopleFaceList.Add(peopleFace);
 
-                    if (time == null) time = peopleFace.CapturedTime;
-                }
-                session.Insert(peopleFaceList);
+                if (time == null) time = peopleFace.CapturedTime;
             }
+            session.Insert(peopleFaceList, 100); //设置合理的pageSize
 
             long count = session.Queryable<PeopleFace>().Where(t => t.CapturedTime >= time && t.CameraId.StartsWith(pre)).Count();
             Console.WriteLine("count=" + count);

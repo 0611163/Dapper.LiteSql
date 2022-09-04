@@ -422,11 +422,12 @@ namespace Dapper.LiteSql
                 }
                 else
                 {
-                    string newName = param.ParameterName + "A";
-                    while (_params.ContainsKey(newName))
+                    int index = 0;
+                    while (_params.ContainsKey(param.ParameterName + (index == 0 ? "" : index.ToString())))
                     {
-                        newName += "A";
+                        index++;
                     }
+                    string newName = param.ParameterName + (index == 0 ? "" : index.ToString());
                     DbParameter newParam = _provider.GetDbParameter(newName, param.Value);
                     _params.Add(newParam.ParameterName, newParam);
                     string oldParamName = _provider.GetParameterName(param.ParameterName, param.Value.GetType());
@@ -434,13 +435,18 @@ namespace Dapper.LiteSql
                     int pos = sql.IndexOf(oldParamName);
                     Regex regex = new Regex(oldParamName + "[)]{1}", RegexOptions.None);
                     Regex regex2 = new Regex(oldParamName + "[\\s]{1}", RegexOptions.None);
+                    Regex regex3 = new Regex(oldParamName + "[,]{1}", RegexOptions.None);
                     if (regex.IsMatch(sql))
                     {
                         sql = regex.Replace(sql, newParamName + ")", 1);
                     }
-                    else
+                    else if (regex2.IsMatch(sql))
                     {
                         sql = regex2.Replace(sql, newParamName + " ", 1);
+                    }
+                    else
+                    {
+                        sql = regex3.Replace(sql, newParamName + " ", 1);
                     }
                 }
             }
