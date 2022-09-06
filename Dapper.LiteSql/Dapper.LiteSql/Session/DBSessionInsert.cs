@@ -25,7 +25,10 @@ namespace Dapper.LiteSql
 
             OnExecuting?.Invoke(strSql.ToString(), parameters);
 
-            _conn.Execute(strSql.ToString(), ToDynamicParameters(parameters), _tran);
+            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            {
+                _conn.Conn.Execute(strSql.ToString(), ToDynamicParameters(parameters), _tran?.Tran);
+            }
         }
 
         /// <summary>
@@ -42,8 +45,11 @@ namespace Dapper.LiteSql
 
             OnExecuting?.Invoke(strSql.ToString(), parameters);
 
-            object id = _conn.ExecuteScalar(strSql.ToString(), ToDynamicParameters(parameters), _tran);
-            return Convert.ToInt64(id);
+            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            {
+                object id = _conn.Conn.ExecuteScalar(strSql.ToString(), ToDynamicParameters(parameters), _tran?.Tran);
+                return Convert.ToInt64(id);
+            }
         }
         #endregion
 
@@ -51,7 +57,7 @@ namespace Dapper.LiteSql
         /// <summary>
         /// 添加
         /// </summary>
-        public Task InsertAsync(object obj)
+        public async Task InsertAsync(object obj)
         {
             StringBuilder strSql = new StringBuilder();
             int savedCount = 0;
@@ -61,7 +67,10 @@ namespace Dapper.LiteSql
 
             OnExecuting?.Invoke(strSql.ToString(), parameters);
 
-            return _conn.ExecuteAsync(strSql.ToString(), ToDynamicParameters(parameters), _tran);
+            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            {
+                await _conn.Conn.ExecuteAsync(strSql.ToString(), ToDynamicParameters(parameters), _tran?.Tran);
+            }
         }
 
         /// <summary>
@@ -78,8 +87,11 @@ namespace Dapper.LiteSql
 
             OnExecuting?.Invoke(strSql.ToString(), parameters);
 
-            object id = await _conn.ExecuteScalarAsync(strSql.ToString(), ToDynamicParameters(parameters), _tran);
-            return Convert.ToInt64(id);
+            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            {
+                object id = await _conn.Conn.ExecuteScalarAsync(strSql.ToString(), ToDynamicParameters(parameters), _tran?.Tran);
+                return Convert.ToInt64(id);
+            }
         }
         #endregion
 
@@ -109,7 +121,10 @@ namespace Dapper.LiteSql
 
                 OnExecuting?.Invoke(strSql.ToString(), parameters);
 
-                _conn.Execute(strSql.ToString(), ToDynamicParameters(parameters), _tran);
+                using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+                {
+                    _conn.Conn.Execute(strSql.ToString(), ToDynamicParameters(parameters), _tran?.Tran);
+                }
             }
         }
         #endregion
@@ -140,7 +155,10 @@ namespace Dapper.LiteSql
 
                 OnExecuting?.Invoke(strSql.ToString(), parameters);
 
-                await _conn.ExecuteAsync(strSql.ToString(), ToDynamicParameters(parameters), _tran);
+                using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+                {
+                    await _conn.Conn.ExecuteAsync(strSql.ToString(), ToDynamicParameters(parameters), _tran?.Tran);
+                }
             }
         }
         #endregion

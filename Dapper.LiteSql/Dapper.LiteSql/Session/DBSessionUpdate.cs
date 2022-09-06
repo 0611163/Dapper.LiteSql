@@ -87,7 +87,10 @@ namespace Dapper.LiteSql
             {
                 OnExecuting?.Invoke(strSql.ToString(), parameters);
 
-                _conn.Execute(strSql.ToString(), ToDynamicParameters(parameters), _tran);
+                using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+                {
+                    _conn.Conn.Execute(strSql.ToString(), ToDynamicParameters(parameters), _tran?.Tran);
+                }
             }
         }
         #endregion
@@ -111,7 +114,10 @@ namespace Dapper.LiteSql
             {
                 OnExecuting?.Invoke(strSql.ToString(), parameters);
 
-                await _conn.ExecuteAsync(strSql.ToString(), ToDynamicParameters(parameters), _tran);
+                using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+                {
+                    await _conn.Conn.ExecuteAsync(strSql.ToString(), ToDynamicParameters(parameters), _tran?.Tran);
+                }
             }
         }
         #endregion
@@ -157,7 +163,10 @@ namespace Dapper.LiteSql
                 {
                     OnExecuting?.Invoke(strSql.ToString(), parameters);
 
-                    _conn.Execute(strSql.ToString(), ToDynamicParameters(parameters), _tran);
+                    using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+                    {
+                        _conn.Conn.Execute(strSql.ToString(), ToDynamicParameters(parameters), _tran?.Tran);
+                    }
                 }
             }
         }
@@ -204,7 +213,10 @@ namespace Dapper.LiteSql
                 {
                     OnExecuting?.Invoke(strSql.ToString(), parameters);
 
-                    await _conn.ExecuteAsync(strSql.ToString(), ToDynamicParameters(parameters), _tran);
+                    using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+                    {
+                        await _conn.Conn.ExecuteAsync(strSql.ToString(), ToDynamicParameters(parameters), _tran?.Tran);
+                    }
                 }
             }
         }

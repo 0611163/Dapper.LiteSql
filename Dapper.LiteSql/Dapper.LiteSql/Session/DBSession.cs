@@ -37,12 +37,12 @@ namespace Dapper.LiteSql
         /// <summary>
         /// 事务
         /// </summary>
-        private DbTransaction _tran;
+        private DbTransactionExt _tran;
 
         /// <summary>
         /// 数据库连接
         /// </summary>
-        private DbConnection _conn;
+        private DbConnectionExt _conn;
 
         /// <summary>
         /// 数据库实现
@@ -94,8 +94,6 @@ namespace Dapper.LiteSql
             _provider = ProviderFactory.CreateProvider(dbType);
             _splitTableMapping = splitTableMapping;
             _autoIncrement = autoIncrement;
-
-            _conn = _provider.CreateConnection(_connectionString);
         }
 
         /// <summary>
@@ -107,45 +105,16 @@ namespace Dapper.LiteSql
             _provider = ProviderFactory.CreateProvider(providerType);
             _splitTableMapping = splitTableMapping;
             _autoIncrement = autoIncrement;
-
-            _conn = _provider.CreateConnection(_connectionString);
         }
         #endregion
 
         #region 资源释放
         /// <summary>
-        /// 资源释放
+        /// 资源释放 为兼容旧版本，方法保留，方法体为空
         /// </summary>
         public void Dispose()
         {
-            if (_conn.State == ConnectionState.Open)
-            {
-                _conn.Close();
-            }
-            if (_tran != null)
-            {
-                _tran.Dispose();
-            }
-        }
-        #endregion
 
-        #region InitConn 初始化数据库连接
-        /// <summary>
-        /// 初始化数据库连接
-        /// </summary>
-        public void InitConn()
-        {
-            _conn.Open();
-        }
-        #endregion
-
-        #region InitConnAsync 初始化数据库连接
-        /// <summary>
-        /// 初始化数据库连接
-        /// </summary>
-        public async Task InitConnAsync()
-        {
-            await _conn.OpenAsync();
         }
         #endregion
 
@@ -203,14 +172,17 @@ namespace Dapper.LiteSql
             string idName = GetIdName(type, out _);
             string sql = _provider.CreateGetMaxIdSql(GetTableName(_provider, type), _provider.OpenQuote + idName + _provider.CloseQuote);
 
-            object obj = _conn.ExecuteScalar(sql);
-            if ((Object.Equals(obj, null)) || (Object.Equals(obj, System.DBNull.Value)))
+            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
             {
-                return 1;
-            }
-            else
-            {
-                return int.Parse(obj.ToString()) + 1;
+                object obj = _conn.Conn.ExecuteScalar(sql);
+                if (object.Equals(obj, null) || object.Equals(obj, DBNull.Value))
+                {
+                    return 1;
+                }
+                else
+                {
+                    return int.Parse(obj.ToString()) + 1;
+                }
             }
         }
         #endregion

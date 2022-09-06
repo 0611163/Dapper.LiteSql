@@ -48,7 +48,10 @@ namespace Dapper.LiteSql
 
             OnExecuting?.Invoke(sbSql.ToString(), cmdParms);
 
-            return _conn.Execute(sbSql.ToString(), ToDynamicParameters(cmdParms), _tran);
+            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            {
+                return _conn.Conn.Execute(sbSql.ToString(), ToDynamicParameters(cmdParms), _tran?.Tran);
+            }
         }
         #endregion
 
@@ -77,7 +80,7 @@ namespace Dapper.LiteSql
         /// <summary>
         /// 根据Id删除
         /// </summary>
-        public Task<int> DeleteByIdAsync<T>(string id)
+        public async Task<int> DeleteByIdAsync<T>(string id)
         {
             Type type = typeof(T);
             StringBuilder sbSql = new StringBuilder();
@@ -91,7 +94,10 @@ namespace Dapper.LiteSql
 
             OnExecuting?.Invoke(sbSql.ToString(), cmdParms);
 
-            return _conn.ExecuteAsync(sbSql.ToString(), ToDynamicParameters(cmdParms), _tran);
+            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            {
+                return await _conn.Conn.ExecuteAsync(sbSql.ToString(), ToDynamicParameters(cmdParms), _tran?.Tran);
+            }
         }
         #endregion
 
@@ -123,7 +129,10 @@ namespace Dapper.LiteSql
 
             OnExecuting?.Invoke(sbSql.ToString(), cmdParms);
 
-            return _conn.Execute(sbSql.ToString(), ToDynamicParameters(cmdParms), _tran);
+            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            {
+                return _conn.Conn.Execute(sbSql.ToString(), ToDynamicParameters(cmdParms), _tran?.Tran);
+            }
         }
         #endregion
 
@@ -131,7 +140,7 @@ namespace Dapper.LiteSql
         /// <summary>
         /// 根据Id集合删除
         /// </summary>
-        public Task<int> BatchDeleteByIdsAsync<T>(string ids)
+        public async Task<int> BatchDeleteByIdsAsync<T>(string ids)
         {
             if (string.IsNullOrWhiteSpace(ids)) throw new Exception("ids 不能为空");
 
@@ -154,7 +163,10 @@ namespace Dapper.LiteSql
 
             OnExecuting?.Invoke(sbSql.ToString(), cmdParms);
 
-            return _conn.ExecuteAsync(sbSql.ToString(), ToDynamicParameters(cmdParms), _tran);
+            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            {
+                return await _conn.Conn.ExecuteAsync(sbSql.ToString(), ToDynamicParameters(cmdParms), _tran?.Tran);
+            }
         }
         #endregion
 
@@ -201,7 +213,10 @@ namespace Dapper.LiteSql
 
             OnExecuting?.Invoke(sbSql.ToString(), null);
 
-            return _conn.Execute(sbSql.ToString(), null, _tran);
+            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            {
+                return _conn.Conn.Execute(sbSql.ToString(), null, _tran?.Tran);
+            }
         }
         #endregion
 
@@ -209,7 +224,7 @@ namespace Dapper.LiteSql
         /// <summary>
         /// 根据条件删除
         /// </summary>
-        public Task<int> DeleteByConditionAsync(Type type, string condition)
+        public async Task<int> DeleteByConditionAsync(Type type, string condition)
         {
             if (string.IsNullOrWhiteSpace(condition)) throw new Exception("condition 不能为空");
 
@@ -220,7 +235,10 @@ namespace Dapper.LiteSql
 
             OnExecuting?.Invoke(sbSql.ToString(), null);
 
-            return _conn.ExecuteAsync(sbSql.ToString(), null, _tran);
+            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            {
+                return await _conn.Conn.ExecuteAsync(sbSql.ToString(), null, _tran?.Tran);
+            }
         }
         #endregion
 
@@ -264,7 +282,10 @@ namespace Dapper.LiteSql
             Tuple<string, string> delTmpl = _provider.CreateDeleteSqlTempldate();
             sbSql.Append(string.Format(delTmpl.Item1 + " {0} " + delTmpl.Item2 + " {1}", GetTableName(_provider, type), condition));
 
-            return _conn.Execute(sbSql.ToString(), ToDynamicParameters(cmdParms), _tran);
+            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            {
+                return _conn.Conn.Execute(sbSql.ToString(), ToDynamicParameters(cmdParms), _tran?.Tran);
+            }
         }
         #endregion
 
@@ -272,7 +293,7 @@ namespace Dapper.LiteSql
         /// <summary>
         /// 根据条件删除
         /// </summary>
-        public Task<int> DeleteByConditionAsync(Type type, string condition, DbParameter[] cmdParms)
+        public async Task<int> DeleteByConditionAsync(Type type, string condition, DbParameter[] cmdParms)
         {
             if (string.IsNullOrWhiteSpace(condition)) throw new Exception("condition 不能为空");
 
@@ -281,7 +302,10 @@ namespace Dapper.LiteSql
             Tuple<string, string> delTmpl = _provider.CreateDeleteSqlTempldate();
             sbSql.Append(string.Format(delTmpl.Item1 + " {0} " + delTmpl.Item2 + " {1}", GetTableName(_provider, type), condition));
 
-            return _conn.ExecuteAsync(sbSql.ToString(), ToDynamicParameters(cmdParms), _tran);
+            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            {
+                return await _conn.Conn.ExecuteAsync(sbSql.ToString(), ToDynamicParameters(cmdParms), _tran?.Tran);
+            }
         }
         #endregion
 

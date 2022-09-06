@@ -30,15 +30,18 @@ namespace Dapper.LiteSql
             SqlFilter(ref sqlString);
             OnExecuting?.Invoke(sqlString, null);
 
-            object obj = _conn.ExecuteScalar(sqlString);
+            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            {
+                object obj = _conn.Conn.ExecuteScalar(sqlString);
 
-            if ((Object.Equals(obj, null)) || (Object.Equals(obj, System.DBNull.Value)))
-            {
-                return false;
-            }
-            else
-            {
-                return true;
+                if (object.Equals(obj, null) || object.Equals(obj, DBNull.Value))
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
             }
         }
         #endregion
@@ -52,15 +55,18 @@ namespace Dapper.LiteSql
             SqlFilter(ref sqlString);
             OnExecuting?.Invoke(sqlString, null);
 
-            object obj = await _conn.ExecuteScalarAsync(sqlString);
+            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            {
+                object obj = await _conn.Conn.ExecuteScalarAsync(sqlString);
 
-            if ((Object.Equals(obj, null)) || (Object.Equals(obj, System.DBNull.Value)))
-            {
-                return false;
-            }
-            else
-            {
-                return true;
+                if (object.Equals(obj, null) || object.Equals(obj, DBNull.Value))
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
             }
         }
         #endregion
@@ -76,15 +82,18 @@ namespace Dapper.LiteSql
             SqlFilter(ref sqlString);
             OnExecuting?.Invoke(sqlString, null);
 
-            object obj = _conn.ExecuteScalar(sqlString);
+            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            {
+                object obj = _conn.Conn.ExecuteScalar(sqlString);
 
-            if ((Object.Equals(obj, null)) || (Object.Equals(obj, System.DBNull.Value)))
-            {
-                return default(T);
-            }
-            else
-            {
-                return (T)Convert.ChangeType(obj, typeof(T));
+                if (object.Equals(obj, null) || object.Equals(obj, DBNull.Value))
+                {
+                    return default(T);
+                }
+                else
+                {
+                    return (T)Convert.ChangeType(obj, typeof(T));
+                }
             }
         }
         #endregion
@@ -99,15 +108,18 @@ namespace Dapper.LiteSql
             SqlFilter(ref sqlString);
             OnExecuting?.Invoke(sqlString, null);
 
-            object obj = _conn.ExecuteScalar(sqlString);
+            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            {
+                object obj = _conn.Conn.ExecuteScalar(sqlString);
 
-            if ((Object.Equals(obj, null)) || (Object.Equals(obj, System.DBNull.Value)))
-            {
-                return null;
-            }
-            else
-            {
-                return obj;
+                if (object.Equals(obj, null) || object.Equals(obj, DBNull.Value))
+                {
+                    return null;
+                }
+                else
+                {
+                    return obj;
+                }
             }
         }
         #endregion
@@ -122,15 +134,18 @@ namespace Dapper.LiteSql
             SqlFilter(ref sqlString);
             OnExecuting?.Invoke(sqlString, null);
 
-            object obj = await _conn.ExecuteScalarAsync(sqlString);
+            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            {
+                object obj = await _conn.Conn.ExecuteScalarAsync(sqlString);
 
-            if ((Object.Equals(obj, null)) || (Object.Equals(obj, System.DBNull.Value)))
-            {
-                return default(T);
-            }
-            else
-            {
-                return (T)Convert.ChangeType(obj, typeof(T));
+                if (object.Equals(obj, null) || object.Equals(obj, DBNull.Value))
+                {
+                    return default(T);
+                }
+                else
+                {
+                    return (T)Convert.ChangeType(obj, typeof(T));
+                }
             }
         }
         #endregion
@@ -145,15 +160,18 @@ namespace Dapper.LiteSql
             SqlFilter(ref sqlString);
             OnExecuting?.Invoke(sqlString, null);
 
-            object obj = await _conn.ExecuteScalarAsync(sqlString);
+            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            {
+                object obj = await _conn.Conn.ExecuteScalarAsync(sqlString);
 
-            if ((Object.Equals(obj, null)) || (Object.Equals(obj, System.DBNull.Value)))
-            {
-                return null;
-            }
-            else
-            {
-                return obj;
+                if (object.Equals(obj, null) || object.Equals(obj, DBNull.Value))
+                {
+                    return null;
+                }
+                else
+                {
+                    return obj;
+                }
             }
         }
         #endregion
@@ -225,15 +243,18 @@ namespace Dapper.LiteSql
             SqlFilter(ref sqlString);
             OnExecuting?.Invoke(sqlString, null);
 
-            object obj = _conn.ExecuteScalar(sqlString, ToDynamicParameters(cmdParms));
+            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            {
+                object obj = _conn.Conn.ExecuteScalar(sqlString, ToDynamicParameters(cmdParms));
 
-            if ((Object.Equals(obj, null)) || (Object.Equals(obj, System.DBNull.Value)))
-            {
-                return false;
-            }
-            else
-            {
-                return true;
+                if (object.Equals(obj, null) || object.Equals(obj, DBNull.Value))
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
             }
         }
         #endregion
@@ -247,15 +268,18 @@ namespace Dapper.LiteSql
             SqlFilter(ref sqlString);
             OnExecuting?.Invoke(sqlString, null);
 
-            object obj = await _conn.ExecuteScalarAsync(sqlString, ToDynamicParameters(cmdParms));
+            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            {
+                object obj = await _conn.Conn.ExecuteScalarAsync(sqlString, ToDynamicParameters(cmdParms));
 
-            if ((Object.Equals(obj, null)) || (Object.Equals(obj, System.DBNull.Value)))
-            {
-                return false;
-            }
-            else
-            {
-                return true;
+                if (object.Equals(obj, null) || object.Equals(obj, DBNull.Value))
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
             }
         }
         #endregion
@@ -272,15 +296,18 @@ namespace Dapper.LiteSql
             SqlFilter(ref sqlString);
             OnExecuting?.Invoke(sqlString, null);
 
-            object obj = _conn.ExecuteScalar(sqlString, ToDynamicParameters(cmdParms));
+            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            {
+                object obj = _conn.Conn.ExecuteScalar(sqlString, ToDynamicParameters(cmdParms));
 
-            if ((Object.Equals(obj, null)) || (Object.Equals(obj, System.DBNull.Value)))
-            {
-                return default(T);
-            }
-            else
-            {
-                return (T)Convert.ChangeType(obj, typeof(T));
+                if (object.Equals(obj, null) || object.Equals(obj, DBNull.Value))
+                {
+                    return default(T);
+                }
+                else
+                {
+                    return (T)Convert.ChangeType(obj, typeof(T));
+                }
             }
         }
         #endregion
@@ -296,15 +323,18 @@ namespace Dapper.LiteSql
             SqlFilter(ref sqlString);
             OnExecuting?.Invoke(sqlString, null);
 
-            object obj = _conn.ExecuteScalar(sqlString, ToDynamicParameters(cmdParms));
+            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            {
+                object obj = _conn.Conn.ExecuteScalar(sqlString, ToDynamicParameters(cmdParms));
 
-            if ((Object.Equals(obj, null)) || (Object.Equals(obj, System.DBNull.Value)))
-            {
-                return null;
-            }
-            else
-            {
-                return obj;
+                if (object.Equals(obj, null) || object.Equals(obj, DBNull.Value))
+                {
+                    return null;
+                }
+                else
+                {
+                    return obj;
+                }
             }
         }
         #endregion
@@ -320,15 +350,18 @@ namespace Dapper.LiteSql
             SqlFilter(ref sqlString);
             OnExecuting?.Invoke(sqlString, null);
 
-            object obj = await _conn.ExecuteScalarAsync(sqlString, ToDynamicParameters(cmdParms));
+            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            {
+                object obj = await _conn.Conn.ExecuteScalarAsync(sqlString, ToDynamicParameters(cmdParms));
 
-            if ((Object.Equals(obj, null)) || (Object.Equals(obj, System.DBNull.Value)))
-            {
-                return default(T);
-            }
-            else
-            {
-                return (T)Convert.ChangeType(obj, typeof(T));
+                if (object.Equals(obj, null) || object.Equals(obj, DBNull.Value))
+                {
+                    return default(T);
+                }
+                else
+                {
+                    return (T)Convert.ChangeType(obj, typeof(T));
+                }
             }
         }
         #endregion
@@ -344,15 +377,18 @@ namespace Dapper.LiteSql
             SqlFilter(ref sqlString);
             OnExecuting?.Invoke(sqlString, null);
 
-            object obj = await _conn.ExecuteScalarAsync(sqlString, ToDynamicParameters(cmdParms));
+            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            {
+                object obj = await _conn.Conn.ExecuteScalarAsync(sqlString, ToDynamicParameters(cmdParms));
 
-            if ((Object.Equals(obj, null)) || (Object.Equals(obj, System.DBNull.Value)))
-            {
-                return null;
-            }
-            else
-            {
-                return obj;
+                if (object.Equals(obj, null) || object.Equals(obj, DBNull.Value))
+                {
+                    return null;
+                }
+                else
+                {
+                    return obj;
+                }
             }
         }
         #endregion
@@ -428,7 +464,10 @@ namespace Dapper.LiteSql
         /// <returns>影响的记录数</returns>
         public int Execute(ISqlString sql)
         {
-            return _conn.Execute(sql.SQL, ToDynamicParameters(sql.Params));
+            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            {
+                return _conn.Conn.Execute(sql.SQL, ToDynamicParameters(sql.Params), _tran?.Tran);
+            }
         }
 
         /// <summary>
@@ -438,7 +477,10 @@ namespace Dapper.LiteSql
         /// <returns>影响的记录数</returns>
         public Task<int> ExecuteAsync(ISqlString sql)
         {
-            return _conn.ExecuteAsync(sql.SQL, ToDynamicParameters(sql.Params));
+            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            {
+                return _conn.Conn.ExecuteAsync(sql.SQL, ToDynamicParameters(sql.Params), _tran?.Tran);
+            }
         }
 
         /// <summary>
