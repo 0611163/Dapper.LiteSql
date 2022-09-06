@@ -154,7 +154,7 @@ namespace Dapper.LiteSql
 
             OnExecuting?.Invoke(sbSql.ToString(), cmdParms);
 
-            return _conn.ExecuteAsync(sbSql.ToString(), ToDynamicParameters(cmdParms));
+            return _conn.ExecuteAsync(sbSql.ToString(), ToDynamicParameters(cmdParms), _tran);
         }
         #endregion
 
@@ -264,7 +264,7 @@ namespace Dapper.LiteSql
             Tuple<string, string> delTmpl = _provider.CreateDeleteSqlTempldate();
             sbSql.Append(string.Format(delTmpl.Item1 + " {0} " + delTmpl.Item2 + " {1}", GetTableName(_provider, type), condition));
 
-            return _conn.Execute(sbSql.ToString(), ToDynamicParameters(cmdParms));
+            return _conn.Execute(sbSql.ToString(), ToDynamicParameters(cmdParms), _tran);
         }
         #endregion
 
@@ -281,7 +281,7 @@ namespace Dapper.LiteSql
             Tuple<string, string> delTmpl = _provider.CreateDeleteSqlTempldate();
             sbSql.Append(string.Format(delTmpl.Item1 + " {0} " + delTmpl.Item2 + " {1}", GetTableName(_provider, type), condition));
 
-            return _conn.ExecuteAsync(sbSql.ToString(), ToDynamicParameters(cmdParms));
+            return _conn.ExecuteAsync(sbSql.ToString(), ToDynamicParameters(cmdParms), _tran);
         }
         #endregion
 
