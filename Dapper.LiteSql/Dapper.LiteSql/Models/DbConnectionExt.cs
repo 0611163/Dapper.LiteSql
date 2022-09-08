@@ -30,18 +30,24 @@ namespace Dapper.LiteSql
         public DateTime CreateTime { get; set; }
 
         /// <summary>
-        /// 是否使用中
+        /// 数据库连接是否使用中
         /// </summary>
         public bool IsUsing { get; set; }
 
         /// <summary>
+        /// 该数据库连接的数据库事务是否使用中
+        /// </summary>
+        public bool IsTranUsing { get; set; }
+
+        /// <summary>
         /// 数据库连接扩展
         /// </summary>
-        public DbConnectionExt(DbConnection conn)
+        public DbConnectionExt(DbConnection conn, bool isUsing = true, bool isTranUsing = false)
         {
             Conn = conn;
             CreateTime = DateTime.Now;
-            IsUsing = true;
+            IsUsing = isUsing;
+            IsTranUsing = isTranUsing;
         }
 
         /// <summary>
@@ -49,10 +55,7 @@ namespace Dapper.LiteSql
         /// </summary>
         public void Dispose()
         {
-            if (Tran == null)
-            {
-                IsUsing = false;
-            }
+            IsUsing = false;
         }
     }
 

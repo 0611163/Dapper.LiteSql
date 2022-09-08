@@ -10,7 +10,9 @@ using System.Threading.Tasks;
 namespace Dapper.LiteSql
 {
     /// <summary>
-    /// Session接口
+    /// ISession接口
+    /// 一个ISession实例对应一个数据库连接，一个ISession实例只有一个数据库连接
+    /// ISession是线程安全的
     /// </summary>
     public partial interface ISession : IDisposable
     {

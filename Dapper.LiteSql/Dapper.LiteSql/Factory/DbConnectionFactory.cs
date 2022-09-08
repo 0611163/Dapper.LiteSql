@@ -51,7 +51,8 @@ namespace Dapper.LiteSql
                             lock (_lock)
                             {
                                 if (!dbConnectionExt.IsUsing
-                                && DateTime.Now.Subtract(dbConnectionExt.CreateTime).TotalSeconds > _timeout)
+                                    && !dbConnectionExt.IsTranUsing
+                                    && DateTime.Now.Subtract(dbConnectionExt.CreateTime).TotalSeconds > _timeout)
                                 {
                                     dbConnections.Connections.TryRemove(dbConnectionExt, out object _);
                                     dbConnectionExt.Conn.Close();
@@ -68,8 +69,7 @@ namespace Dapper.LiteSql
                                     //创建连接池
                                     DbConnection conn = dbConnections.Provider.CreateConnection(dbConnections.ConnnectionString);
                                     conn.Open();
-                                    DbConnectionExt connExt = new DbConnectionExt(conn);
-                                    connExt.IsUsing = false;
+                                    DbConnectionExt connExt = new DbConnectionExt(conn, false);
                                     dbConnections.Connections.TryAdd(connExt, null);
                                 }
                             }
@@ -88,16 +88,22 @@ namespace Dapper.LiteSql
         /// <summary>
         /// 从数据库连接池获取一个数据库连接
         /// </summary>
-        public static DbConnectionExt GetConnection(IProvider provider, string connnectionString, DbTransactionExt _trans)
+        public static DbConnectionExt GetConnection(IProvider provider, string connnectionString, DbTransactionExt _tran)
         {
-            if (_trans != null)
-            {
-                _trans.ConnEx.Tran = _trans;
-                return _trans.ConnEx;
-            }
-
             lock (_lock)
             {
+                if (_tran != null)
+                {
+                    SpinWait spinWait = new SpinWait();
+                    while (_tran.ConnEx.IsUsing)
+                    {
+                        spinWait.SpinOnce();
+                    }
+                    _tran.ConnEx.IsUsing = true;
+                    _tran.ConnEx.Tran = _tran;
+                    return _tran.ConnEx;
+                }
+
                 DbConnectionCollection dbConnections;
                 string key = provider.GetType().Name + "_" + connnectionString;
 
@@ -115,7 +121,7 @@ namespace Dapper.LiteSql
                 //从空闲数据库连接池中取数据库连接
                 foreach (DbConnectionExt dbConnectionExt in dbConnections.Connections.Keys)
                 {
-                    if (!dbConnectionExt.IsUsing)
+                    if (!dbConnectionExt.IsUsing && !dbConnectionExt.IsTranUsing)
                     {
                         dbConnectionExt.IsUsing = true;
                         return dbConnectionExt;
@@ -136,18 +142,24 @@ namespace Dapper.LiteSql
         /// <summary>
         /// 从数据库连接池获取一个数据库连接
         /// </summary>
-        public static async Task<DbConnectionExt> GetConnectionAsync(IProvider provider, string connnectionString, DbTransactionExt _trans)
+        public static async Task<DbConnectionExt> GetConnectionAsync(IProvider provider, string connnectionString, DbTransactionExt _tran)
         {
-            if (_trans != null)
-            {
-                _trans.ConnEx.Tran = _trans;
-                return _trans.ConnEx;
-            }
-
             Monitor.Enter(_lock);
 
             try
             {
+                if (_tran != null)
+                {
+                    SpinWait spinWait = new SpinWait();
+                    while (_tran.ConnEx.IsUsing)
+                    {
+                        spinWait.SpinOnce();
+                    }
+                    _tran.ConnEx.IsUsing = true;
+                    _tran.ConnEx.Tran = _tran;
+                    return _tran.ConnEx;
+                }
+
                 DbConnectionCollection dbConnections;
                 string key = provider.GetType().Name + "_" + connnectionString;
 

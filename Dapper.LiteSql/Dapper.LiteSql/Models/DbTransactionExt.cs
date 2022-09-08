@@ -21,6 +21,7 @@ namespace Dapper.LiteSql
             Tran = tran;
             ConnEx = connEx;
             ConnEx.Tran = this;
+            ConnEx.IsTranUsing = true;
         }
     }
 }
