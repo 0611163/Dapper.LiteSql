@@ -15,8 +15,6 @@ namespace Dapper.LiteSql
         public void BeginTransaction()
         {
             _conn = DbConnectionFactory.GetConnection(_provider, _connectionString, null);
-            _conn.IsUsing = false;
-            _conn.IsTranUsing = true;
             _tran = new DbTransactionExt(_conn.Conn.BeginTransaction(), _conn);
         }
         #endregion
@@ -45,7 +43,6 @@ namespace Dapper.LiteSql
                 _tran = null;
                 _conn.Tran = null;
                 _conn.IsUsing = false;
-                _conn.IsTranUsing = false;
             }
         }
         #endregion

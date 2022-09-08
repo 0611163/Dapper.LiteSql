@@ -13,10 +13,10 @@ using System.Threading;
 namespace Dapper.LiteSqlTest
 {
     /// <summary>
-    /// 测试session和事务的跨线程使用
-    /// 通常建议一个线程一个session，一个session对应一个数据库连接和事务
-    /// 多线程并发的情况建议每个线程中通过LiteSqlClient实例GetSession
-    /// session和事务支持跨线程使用是为了特殊情况或者基于LiteSql开发Web框架
+    /// 多线程并发测试
+    /// 一个ISession实例对应一个数据库连接，一个ISession实例只有一个数据库连接
+    /// ISession不是线程安全的，不能跨线程使用
+    /// 多线程并发的情况，通过LiteSqlFactory在每个线程中创建一个ISession实例
     /// </summary>
     [TestClass]
     public class MultiThreadTest
@@ -31,50 +31,57 @@ namespace Dapper.LiteSqlTest
         /// 当任务数量较大，且每个任务都开启一个线程的情况下，如果不限制使用线程数量，线程池被占满后性能非常差乃至报错。
         /// 线程不是越少越好，也不是越多越好。
         /// </summary>
-        private TaskSchedulerEx _task = new TaskSchedulerEx(0, 30);
+        private TaskSchedulerEx _taskEx = new TaskSchedulerEx(0, 30);
+
+        /// <summary>
+        /// true:使用独立线程池,false:使用.NET默认线程池
+        /// </summary>
+        private bool _useTaskEx = true;
 
         #region 构造函数
         public MultiThreadTest()
         {
-            ServiceHelper.Get<BsOrderDal>().Preheat();
+            ServiceHelper.Get<BsOrderDal>().Preheat();  //预热
         }
         #endregion
 
         #region RunTask
-        private Task RunTask(Action action)
-        {
-            return _task.Run(() =>
-            {
-                try
-                {
-                    action();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.ToString());
-                    throw;
-                }
-            });
-        }
-
         private Task RunTask<T>(Action<T> action, T t)
         {
-            return _task.Run(obj =>
+            if (_useTaskEx)
             {
-                try
+                return _taskEx.Run(obj =>
                 {
-                    action((T)obj);
-                }
-                catch (Exception ex)
+                    try
+                    {
+                        action((T)obj);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.ToString());
+                        throw;
+                    }
+                }, t);
+            }
+            else
+            {
+                return Task.Factory.StartNew(obj =>
                 {
-                    Console.WriteLine(ex.ToString());
-                    throw;
-                }
-            }, t);
+                    try
+                    {
+                        action((T)obj);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.ToString());
+                        throw;
+                    }
+                }, t);
+            }
         }
         #endregion
 
-        #region 多线程并发插入(不带事务)
+        #region 多线程并发插入
         [TestMethod]
         public void Test11Insert()
         {
@@ -90,33 +97,24 @@ namespace Dapper.LiteSqlTest
                 userList.Add(user);
             }
 
-            var session = LiteSqlFactory.GetSession();
-            session.OnExecuting = (s, p) => Console.WriteLine(s); //打印SQL
-
-            try
+            List<Task> tasks = new List<Task>();
+            foreach (SysUser item in userList)
             {
-                List<Task> tasks = new List<Task>();
-                foreach (SysUser item in userList)
+                var task = RunTask(user =>
                 {
-                    var task = RunTask(user =>
-                    {
-                        session.Insert(user);
-                    }, item);
-                    tasks.Add(task);
-                }
-                Task.WaitAll(tasks.ToArray());
+                    LiteSqlFactory.GetSession().Insert(user);
+                }, item);
+                tasks.Add(task);
+            }
+            Task.WaitAll(tasks.ToArray());
 
-                List<SysUser> list = session.Queryable<SysUser>().Where(t => t.Id > 20).ToList();
-                Assert.IsTrue(list.Count >= _count);
-            }
-            catch
-            {
-                throw;
-            }
+            List<SysUser> list = LiteSqlFactory.GetSession()
+                .Queryable<SysUser>().Where(t => t.Id > 20).ToList();
+            Assert.IsTrue(list.Count >= _count);
         }
         #endregion
 
-        #region 多线程并发插入(开启事务)
+        #region 批量插入(开启事务)
         [TestMethod]
         public void Test21Insert_Tran()
         {
@@ -133,21 +131,14 @@ namespace Dapper.LiteSqlTest
             }
 
             var session = LiteSqlFactory.GetSession();
-            session.OnExecuting = (s, p) => Console.WriteLine(s); //打印SQL
 
             try
             {
                 session.BeginTransaction();
-                List<Task> tasks = new List<Task>();
-                foreach (SysUser item in userList)
+                foreach (SysUser user in userList)
                 {
-                    var task = RunTask(user =>
-                    {
-                        session.Insert(user);
-                    }, item);
-                    tasks.Add(task);
+                    session.Insert(user);
                 }
-                Task.WaitAll(tasks.ToArray());
                 session.CommitTransaction();
 
                 List<SysUser> list = session.Queryable<SysUser>().Where(t => t.Id > 20).ToList();
@@ -161,7 +152,7 @@ namespace Dapper.LiteSqlTest
         }
         #endregion
 
-        #region 多线程并发更新(不带事务)
+        #region 多线程并发更新
         [TestMethod]
         public void Test12Update()
         {
@@ -169,39 +160,31 @@ namespace Dapper.LiteSqlTest
             List<SysUser> list = session.Queryable<SysUser>().Where(t => t.Id > 20).ToList();
             Random rnd = new Random();
 
-            try
+            session.AttachOld(list);
+            foreach (SysUser user in list)
             {
-                session.AttachOld(list);
-                foreach (SysUser user in list)
-                {
-                    user.Remark = "1测试修改用户" + rnd.Next(1, 10000);
-                    user.UpdateUserid = "1";
-                    user.UpdateTime = DateTime.Now;
-                }
-
-                List<Task> tasks = new List<Task>();
-                foreach (SysUser item in list)
-                {
-                    var task = RunTask(user =>
-                    {
-                        session.Update(user);
-                    }, item);
-                    tasks.Add(task);
-                }
-                Task.WaitAll(tasks.ToArray());
-
-                list = session.Queryable<SysUser>().Where(t => t.Id > 20 && t.Remark.Contains("1测试修改用户")).ToList();
-                Assert.IsTrue(list.Count >= _count);
+                user.Remark = "1测试修改用户" + rnd.Next(1, 10000);
+                user.UpdateUserid = "1";
+                user.UpdateTime = DateTime.Now;
             }
-            catch
+
+            List<Task> tasks = new List<Task>();
+            foreach (SysUser item in list)
             {
-                session.RollbackTransaction();
-                throw;
+                var task = RunTask(user =>
+                {
+                    LiteSqlFactory.GetSession().Update(user);
+                }, item);
+                tasks.Add(task);
             }
+            Task.WaitAll(tasks.ToArray());
+
+            list = session.Queryable<SysUser>().Where(t => t.Id > 20 && t.Remark.Contains("1测试修改用户")).ToList();
+            Assert.IsTrue(list.Count >= _count);
         }
         #endregion
 
-        #region 多线程并发更新(开启事务)
+        #region 批量更新(开启事务)
         [TestMethod]
         public void Test12Update_Tran()
         {
@@ -220,16 +203,10 @@ namespace Dapper.LiteSqlTest
                 }
 
                 session.BeginTransaction();
-                List<Task> tasks = new List<Task>();
-                foreach (SysUser item in list)
+                foreach (SysUser user in list)
                 {
-                    var task = RunTask(user =>
-                    {
-                        session.Update(user);
-                    }, item);
-                    tasks.Add(task);
+                    session.Update(user);
                 }
-                Task.WaitAll(tasks.ToArray());
                 session.CommitTransaction();
 
                 list = session.Queryable<SysUser>().Where(t => t.Id > 20 && t.Remark.Contains("2测试修改用户")).ToList();
@@ -251,31 +228,23 @@ namespace Dapper.LiteSqlTest
             List<SysUser> list = session.Queryable<SysUser>().Where(t => t.Id > 20).ToList();
             Random rnd = new Random();
 
-            try
+            List<Task> tasks = new List<Task>();
+            foreach (SysUser item in list)
             {
-                List<Task> tasks = new List<Task>();
-                foreach (SysUser item in list)
+                var task = RunTask(user =>
                 {
-                    var task = RunTask(user =>
-                    {
-                        session.DeleteById<SysUser>(user.Id);
-                    }, item);
-                    tasks.Add(task);
-                }
-                Task.WaitAll(tasks.ToArray());
+                    LiteSqlFactory.GetSession().DeleteById<SysUser>(user.Id);
+                }, item);
+                tasks.Add(task);
             }
-            catch
-            {
-                session.RollbackTransaction();
-                throw;
-            }
+            Task.WaitAll(tasks.ToArray());
 
             long count = session.Queryable<SysUser>().Where(t => t.Id > 20).Count();
             Assert.IsTrue(count == 0);
         }
         #endregion
 
-        #region 多线程并发删除(开启事务)
+        #region 逐个删除(开启事务)
         [TestMethod]
         public void Test29Delete_Tran()
         {
@@ -286,16 +255,10 @@ namespace Dapper.LiteSqlTest
             try
             {
                 session.BeginTransaction();
-                List<Task> tasks = new List<Task>();
-                foreach (SysUser item in list)
+                foreach (SysUser user in list)
                 {
-                    var task = RunTask(user =>
-                    {
-                        session.DeleteById<SysUser>(user.Id);
-                    }, item);
-                    tasks.Add(task);
+                    session.DeleteById<SysUser>(user.Id);
                 }
-                Task.WaitAll(tasks.ToArray());
                 session.CommitTransaction();
             }
             catch

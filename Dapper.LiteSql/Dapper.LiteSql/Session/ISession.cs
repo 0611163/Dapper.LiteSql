@@ -12,7 +12,7 @@ namespace Dapper.LiteSql
     /// <summary>
     /// ISession接口
     /// 一个ISession实例对应一个数据库连接，一个ISession实例只有一个数据库连接
-    /// ISession是线程安全的
+    /// ISession不是线程安全的，不能跨线程使用
     /// </summary>
     public partial interface ISession : IDisposable
     {

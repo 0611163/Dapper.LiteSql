@@ -22,7 +22,7 @@ namespace Dapper.LiteSql
     /// <summary>
     /// DBSession
     /// 一个DBSession实例对应一个数据库连接，一个DBSession实例只有一个数据库连接
-    /// DBSession是线程安全的
+    /// DBSession不是线程安全的，不能跨线程使用
     /// </summary>
     public partial class DBSession : ISession
     {

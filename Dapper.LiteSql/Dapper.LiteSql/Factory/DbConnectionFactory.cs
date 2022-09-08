@@ -51,7 +51,6 @@ namespace Dapper.LiteSql
                             lock (_lock)
                             {
                                 if (!dbConnectionExt.IsUsing
-                                    && !dbConnectionExt.IsTranUsing
                                     && DateTime.Now.Subtract(dbConnectionExt.CreateTime).TotalSeconds > _timeout)
                                 {
                                     dbConnections.Connections.TryRemove(dbConnectionExt, out object _);
@@ -90,20 +89,14 @@ namespace Dapper.LiteSql
         /// </summary>
         public static DbConnectionExt GetConnection(IProvider provider, string connnectionString, DbTransactionExt _tran)
         {
+            if (_tran != null)
+            {
+                _tran.ConnEx.Tran = _tran;
+                return _tran.ConnEx;
+            }
+
             lock (_lock)
             {
-                if (_tran != null)
-                {
-                    SpinWait spinWait = new SpinWait();
-                    while (_tran.ConnEx.IsUsing)
-                    {
-                        spinWait.SpinOnce();
-                    }
-                    _tran.ConnEx.IsUsing = true;
-                    _tran.ConnEx.Tran = _tran;
-                    return _tran.ConnEx;
-                }
-
                 DbConnectionCollection dbConnections;
                 string key = provider.GetType().Name + "_" + connnectionString;
 
@@ -121,7 +114,7 @@ namespace Dapper.LiteSql
                 //从空闲数据库连接池中取数据库连接
                 foreach (DbConnectionExt dbConnectionExt in dbConnections.Connections.Keys)
                 {
-                    if (!dbConnectionExt.IsUsing && !dbConnectionExt.IsTranUsing)
+                    if (!dbConnectionExt.IsUsing)
                     {
                         dbConnectionExt.IsUsing = true;
                         return dbConnectionExt;
@@ -144,22 +137,16 @@ namespace Dapper.LiteSql
         /// </summary>
         public static async Task<DbConnectionExt> GetConnectionAsync(IProvider provider, string connnectionString, DbTransactionExt _tran)
         {
+            if (_tran != null)
+            {
+                _tran.ConnEx.Tran = _tran;
+                return _tran.ConnEx;
+            }
+
             Monitor.Enter(_lock);
 
             try
             {
-                if (_tran != null)
-                {
-                    SpinWait spinWait = new SpinWait();
-                    while (_tran.ConnEx.IsUsing)
-                    {
-                        spinWait.SpinOnce();
-                    }
-                    _tran.ConnEx.IsUsing = true;
-                    _tran.ConnEx.Tran = _tran;
-                    return _tran.ConnEx;
-                }
-
                 DbConnectionCollection dbConnections;
                 string key = provider.GetType().Name + "_" + connnectionString;
 
