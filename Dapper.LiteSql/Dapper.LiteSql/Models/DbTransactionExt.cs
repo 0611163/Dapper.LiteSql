@@ -10,7 +10,7 @@ namespace Dapper.LiteSql
     /// <summary>
     /// 数据库事物扩展
     /// </summary>
-    internal class DbTransactionExt
+    public class DbTransactionExt
     {
         public DbTransaction Tran { get; set; }
 

@@ -25,7 +25,7 @@ namespace Dapper.LiteSql
 
             OnExecuting?.Invoke(strSql.ToString(), parameters);
 
-            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            using (_conn = _connFactory.GetConnection(_tran))
             {
                 _conn.Conn.Execute(strSql.ToString(), ToDynamicParameters(parameters), _tran?.Tran);
             }
@@ -45,7 +45,7 @@ namespace Dapper.LiteSql
 
             OnExecuting?.Invoke(strSql.ToString(), parameters);
 
-            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            using (_conn = _connFactory.GetConnection(_tran))
             {
                 object id = _conn.Conn.ExecuteScalar(strSql.ToString(), ToDynamicParameters(parameters), _tran?.Tran);
                 return Convert.ToInt64(id);
@@ -67,7 +67,7 @@ namespace Dapper.LiteSql
 
             OnExecuting?.Invoke(strSql.ToString(), parameters);
 
-            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            using (_conn = await _connFactory.GetConnectionAsync(_tran))
             {
                 await _conn.Conn.ExecuteAsync(strSql.ToString(), ToDynamicParameters(parameters), _tran?.Tran);
             }
@@ -87,7 +87,7 @@ namespace Dapper.LiteSql
 
             OnExecuting?.Invoke(strSql.ToString(), parameters);
 
-            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            using (_conn = await _connFactory.GetConnectionAsync(_tran))
             {
                 object id = await _conn.Conn.ExecuteScalarAsync(strSql.ToString(), ToDynamicParameters(parameters), _tran?.Tran);
                 return Convert.ToInt64(id);
@@ -121,7 +121,7 @@ namespace Dapper.LiteSql
 
                 OnExecuting?.Invoke(strSql.ToString(), parameters);
 
-                using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+                using (_conn = _connFactory.GetConnection(_tran))
                 {
                     _conn.Conn.Execute(strSql.ToString(), ToDynamicParameters(parameters), _tran?.Tran);
                 }
@@ -155,7 +155,7 @@ namespace Dapper.LiteSql
 
                 OnExecuting?.Invoke(strSql.ToString(), parameters);
 
-                using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+                using (_conn = await _connFactory.GetConnectionAsync(_tran))
                 {
                     await _conn.Conn.ExecuteAsync(strSql.ToString(), ToDynamicParameters(parameters), _tran?.Tran);
                 }

@@ -63,6 +63,11 @@ namespace Dapper.LiteSql
         /// 分表映射
         /// </summary>
         private SplitTableMapping _splitTableMapping;
+
+        /// <summary>
+        /// 数据库连接池
+        /// </summary>
+        private DbConnectionFactory _connFactory;
         #endregion
 
         #region 静态构造函数
@@ -93,22 +98,24 @@ namespace Dapper.LiteSql
         /// <summary>
         /// 构造函数
         /// </summary>
-        public DBSession(string connectionString, DBType dbType, SplitTableMapping splitTableMapping, bool autoIncrement = false)
+        public DBSession(string connectionString, DBType dbType, SplitTableMapping splitTableMapping, DbConnectionFactory connFactory, bool autoIncrement = false)
         {
             _connectionString = connectionString;
             _provider = ProviderFactory.CreateProvider(dbType);
             _splitTableMapping = splitTableMapping;
+            _connFactory = connFactory;
             _autoIncrement = autoIncrement;
         }
 
         /// <summary>
         /// 构造函数
         /// </summary>
-        public DBSession(string connectionString, Type providerType, SplitTableMapping splitTableMapping, bool autoIncrement = false)
+        public DBSession(string connectionString, Type providerType, SplitTableMapping splitTableMapping, DbConnectionFactory connFactory, bool autoIncrement = false)
         {
             _connectionString = connectionString;
             _provider = ProviderFactory.CreateProvider(providerType);
             _splitTableMapping = splitTableMapping;
+            _connFactory = connFactory;
             _autoIncrement = autoIncrement;
         }
         #endregion
@@ -177,7 +184,7 @@ namespace Dapper.LiteSql
             string idName = GetIdName(type, out _);
             string sql = _provider.CreateGetMaxIdSql(GetTableName(_provider, type), _provider.OpenQuote + idName + _provider.CloseQuote);
 
-            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            using (_conn = _connFactory.GetConnection(_tran))
             {
                 object obj = _conn.Conn.ExecuteScalar(sql);
                 if (object.Equals(obj, null) || object.Equals(obj, DBNull.Value))

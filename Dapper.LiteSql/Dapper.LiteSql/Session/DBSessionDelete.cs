@@ -48,7 +48,7 @@ namespace Dapper.LiteSql
 
             OnExecuting?.Invoke(sbSql.ToString(), cmdParms);
 
-            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            using (_conn = _connFactory.GetConnection(_tran))
             {
                 return _conn.Conn.Execute(sbSql.ToString(), ToDynamicParameters(cmdParms), _tran?.Tran);
             }
@@ -94,7 +94,7 @@ namespace Dapper.LiteSql
 
             OnExecuting?.Invoke(sbSql.ToString(), cmdParms);
 
-            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            using (_conn = await _connFactory.GetConnectionAsync(_tran))
             {
                 return await _conn.Conn.ExecuteAsync(sbSql.ToString(), ToDynamicParameters(cmdParms), _tran?.Tran);
             }
@@ -129,7 +129,7 @@ namespace Dapper.LiteSql
 
             OnExecuting?.Invoke(sbSql.ToString(), cmdParms);
 
-            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            using (_conn = _connFactory.GetConnection(_tran))
             {
                 return _conn.Conn.Execute(sbSql.ToString(), ToDynamicParameters(cmdParms), _tran?.Tran);
             }
@@ -163,7 +163,7 @@ namespace Dapper.LiteSql
 
             OnExecuting?.Invoke(sbSql.ToString(), cmdParms);
 
-            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            using (_conn = await _connFactory.GetConnectionAsync(_tran))
             {
                 return await _conn.Conn.ExecuteAsync(sbSql.ToString(), ToDynamicParameters(cmdParms), _tran?.Tran);
             }
@@ -213,7 +213,7 @@ namespace Dapper.LiteSql
 
             OnExecuting?.Invoke(sbSql.ToString(), null);
 
-            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            using (_conn = _connFactory.GetConnection(_tran))
             {
                 return _conn.Conn.Execute(sbSql.ToString(), null, _tran?.Tran);
             }
@@ -235,7 +235,7 @@ namespace Dapper.LiteSql
 
             OnExecuting?.Invoke(sbSql.ToString(), null);
 
-            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            using (_conn = await _connFactory.GetConnectionAsync(_tran))
             {
                 return await _conn.Conn.ExecuteAsync(sbSql.ToString(), null, _tran?.Tran);
             }
@@ -282,7 +282,7 @@ namespace Dapper.LiteSql
             Tuple<string, string> delTmpl = _provider.CreateDeleteSqlTempldate();
             sbSql.Append(string.Format(delTmpl.Item1 + " {0} " + delTmpl.Item2 + " {1}", GetTableName(_provider, type), condition));
 
-            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            using (_conn = _connFactory.GetConnection(_tran))
             {
                 return _conn.Conn.Execute(sbSql.ToString(), ToDynamicParameters(cmdParms), _tran?.Tran);
             }
@@ -302,7 +302,7 @@ namespace Dapper.LiteSql
             Tuple<string, string> delTmpl = _provider.CreateDeleteSqlTempldate();
             sbSql.Append(string.Format(delTmpl.Item1 + " {0} " + delTmpl.Item2 + " {1}", GetTableName(_provider, type), condition));
 
-            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            using (_conn = await _connFactory.GetConnectionAsync(_tran))
             {
                 return await _conn.Conn.ExecuteAsync(sbSql.ToString(), ToDynamicParameters(cmdParms), _tran?.Tran);
             }

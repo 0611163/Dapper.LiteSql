@@ -8,6 +8,11 @@ namespace PostgreSQLTest
 {
     public partial class PostgreSQLTest
     {
+        public PostgreSQLTest()
+        {
+            LiteSqlFactory.GetSession(); //预热
+        }
+
         [TestMethod]
         public void Test1Insert()
         {

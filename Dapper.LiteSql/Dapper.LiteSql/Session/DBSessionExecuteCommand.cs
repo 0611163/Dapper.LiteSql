@@ -30,7 +30,7 @@ namespace Dapper.LiteSql
             SqlFilter(ref sqlString);
             OnExecuting?.Invoke(sqlString, null);
 
-            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            using (_conn = _connFactory.GetConnection(_tran))
             {
                 object obj = _conn.Conn.ExecuteScalar(sqlString);
 
@@ -55,7 +55,7 @@ namespace Dapper.LiteSql
             SqlFilter(ref sqlString);
             OnExecuting?.Invoke(sqlString, null);
 
-            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            using (_conn = await _connFactory.GetConnectionAsync(_tran))
             {
                 object obj = await _conn.Conn.ExecuteScalarAsync(sqlString);
 
@@ -82,7 +82,7 @@ namespace Dapper.LiteSql
             SqlFilter(ref sqlString);
             OnExecuting?.Invoke(sqlString, null);
 
-            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            using (_conn = _connFactory.GetConnection(_tran))
             {
                 object obj = _conn.Conn.ExecuteScalar(sqlString);
 
@@ -108,7 +108,7 @@ namespace Dapper.LiteSql
             SqlFilter(ref sqlString);
             OnExecuting?.Invoke(sqlString, null);
 
-            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            using (_conn = _connFactory.GetConnection(_tran))
             {
                 object obj = _conn.Conn.ExecuteScalar(sqlString);
 
@@ -134,7 +134,7 @@ namespace Dapper.LiteSql
             SqlFilter(ref sqlString);
             OnExecuting?.Invoke(sqlString, null);
 
-            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            using (_conn = await _connFactory.GetConnectionAsync(_tran))
             {
                 object obj = await _conn.Conn.ExecuteScalarAsync(sqlString);
 
@@ -160,7 +160,7 @@ namespace Dapper.LiteSql
             SqlFilter(ref sqlString);
             OnExecuting?.Invoke(sqlString, null);
 
-            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            using (_conn = await _connFactory.GetConnectionAsync(_tran))
             {
                 object obj = await _conn.Conn.ExecuteScalarAsync(sqlString);
 
@@ -243,7 +243,7 @@ namespace Dapper.LiteSql
             SqlFilter(ref sqlString);
             OnExecuting?.Invoke(sqlString, null);
 
-            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            using (_conn = _connFactory.GetConnection(_tran))
             {
                 object obj = _conn.Conn.ExecuteScalar(sqlString, ToDynamicParameters(cmdParms));
 
@@ -268,7 +268,7 @@ namespace Dapper.LiteSql
             SqlFilter(ref sqlString);
             OnExecuting?.Invoke(sqlString, null);
 
-            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            using (_conn = await _connFactory.GetConnectionAsync(_tran))
             {
                 object obj = await _conn.Conn.ExecuteScalarAsync(sqlString, ToDynamicParameters(cmdParms));
 
@@ -296,7 +296,7 @@ namespace Dapper.LiteSql
             SqlFilter(ref sqlString);
             OnExecuting?.Invoke(sqlString, null);
 
-            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            using (_conn = _connFactory.GetConnection(_tran))
             {
                 object obj = _conn.Conn.ExecuteScalar(sqlString, ToDynamicParameters(cmdParms));
 
@@ -323,7 +323,7 @@ namespace Dapper.LiteSql
             SqlFilter(ref sqlString);
             OnExecuting?.Invoke(sqlString, null);
 
-            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            using (_conn = _connFactory.GetConnection(_tran))
             {
                 object obj = _conn.Conn.ExecuteScalar(sqlString, ToDynamicParameters(cmdParms));
 
@@ -350,7 +350,7 @@ namespace Dapper.LiteSql
             SqlFilter(ref sqlString);
             OnExecuting?.Invoke(sqlString, null);
 
-            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            using (_conn = await _connFactory.GetConnectionAsync(_tran))
             {
                 object obj = await _conn.Conn.ExecuteScalarAsync(sqlString, ToDynamicParameters(cmdParms));
 
@@ -377,7 +377,7 @@ namespace Dapper.LiteSql
             SqlFilter(ref sqlString);
             OnExecuting?.Invoke(sqlString, null);
 
-            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            using (_conn = await _connFactory.GetConnectionAsync(_tran))
             {
                 object obj = await _conn.Conn.ExecuteScalarAsync(sqlString, ToDynamicParameters(cmdParms));
 
@@ -464,7 +464,7 @@ namespace Dapper.LiteSql
         /// <returns>影响的记录数</returns>
         public int Execute(ISqlString sql)
         {
-            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            using (_conn = _connFactory.GetConnection(_tran))
             {
                 return _conn.Conn.Execute(sql.SQL, ToDynamicParameters(sql.Params), _tran?.Tran);
             }
@@ -477,7 +477,7 @@ namespace Dapper.LiteSql
         /// <returns>影响的记录数</returns>
         public Task<int> ExecuteAsync(ISqlString sql)
         {
-            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            using (_conn = _connFactory.GetConnection(_tran))
             {
                 return _conn.Conn.ExecuteAsync(sql.SQL, ToDynamicParameters(sql.Params), _tran?.Tran);
             }

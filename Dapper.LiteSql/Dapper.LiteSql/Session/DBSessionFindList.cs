@@ -22,7 +22,7 @@ namespace Dapper.LiteSql
             SetTypeMap<T>();
             OnExecuting?.Invoke(sql, null);
 
-            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            using (_conn = _connFactory.GetConnection(_tran))
             {
                 return _conn.Conn.Query<T>(sql).ToList();
             }
@@ -39,7 +39,7 @@ namespace Dapper.LiteSql
             SetTypeMap<T>();
             OnExecuting?.Invoke(sql, null);
 
-            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            using (_conn = await _connFactory.GetConnectionAsync(_tran))
             {
                 return (await _conn.Conn.QueryAsync<T>(sql)).ToList();
             }
@@ -56,7 +56,7 @@ namespace Dapper.LiteSql
             SetTypeMap<T>();
             OnExecuting?.Invoke(sql, cmdParms);
 
-            using (_conn = DbConnectionFactory.GetConnection(_provider, _connectionString, _tran))
+            using (_conn = _connFactory.GetConnection(_tran))
             {
                 return _conn.Conn.Query<T>(sql, ToDynamicParameters(cmdParms)).ToList();
             }
@@ -72,7 +72,7 @@ namespace Dapper.LiteSql
             SetTypeMap<T>();
             OnExecuting?.Invoke(sql, cmdParms);
 
-            using (_conn = await DbConnectionFactory.GetConnectionAsync(_provider, _connectionString, _tran))
+            using (_conn = await _connFactory.GetConnectionAsync(_tran))
             {
                 return (await _conn.Conn.QueryAsync<T>(sql, ToDynamicParameters(cmdParms))).ToList();
             }
