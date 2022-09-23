@@ -282,6 +282,8 @@ namespace Dapper.LiteSql
             Tuple<string, string> delTmpl = _provider.CreateDeleteSqlTempldate();
             sbSql.Append(string.Format(delTmpl.Item1 + " {0} " + delTmpl.Item2 + " {1}", GetTableName(_provider, type), condition));
 
+            OnExecuting?.Invoke(sbSql.ToString(), null);
+
             using (_conn = _connFactory.GetConnection(_tran))
             {
                 return _conn.Conn.Execute(sbSql.ToString(), ToDynamicParameters(cmdParms), _tran?.Tran);
@@ -301,6 +303,8 @@ namespace Dapper.LiteSql
             SqlFilter(ref condition);
             Tuple<string, string> delTmpl = _provider.CreateDeleteSqlTempldate();
             sbSql.Append(string.Format(delTmpl.Item1 + " {0} " + delTmpl.Item2 + " {1}", GetTableName(_provider, type), condition));
+
+            OnExecuting?.Invoke(sbSql.ToString(), null);
 
             using (_conn = await _connFactory.GetConnectionAsync(_tran))
             {
