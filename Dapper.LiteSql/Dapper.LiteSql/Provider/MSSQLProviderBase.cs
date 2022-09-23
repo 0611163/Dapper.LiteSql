@@ -107,34 +107,6 @@ namespace Dapper.LiteSql
         }
         #endregion
 
-        #region ForContains
-        public SqlValue ForContains(string value)
-        {
-            return new SqlValue(" '%' + {0} + '%' ", value);
-        }
-        #endregion
-
-        #region ForStartsWith
-        public SqlValue ForStartsWith(string value)
-        {
-            return new SqlValue(" {0} + '%' ", value);
-        }
-        #endregion
-
-        #region ForEndsWith
-        public SqlValue ForEndsWith(string value)
-        {
-            return new SqlValue(" '%' + {0} ", value);
-        }
-        #endregion
-
-        #region ForDateTime
-        public SqlValue ForDateTime(DateTime dateTime)
-        {
-            return new SqlValue(" convert(varchar(20), {0}, 120) ", dateTime.ToString("yyyy-MM-dd HH:mm:ss"));
-        }
-        #endregion
-
         #region ForList
         public SqlValue ForList(IList list)
         {

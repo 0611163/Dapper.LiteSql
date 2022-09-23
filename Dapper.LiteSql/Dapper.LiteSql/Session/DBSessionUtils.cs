@@ -18,7 +18,7 @@ namespace Dapper.LiteSql
         /// <summary>
         /// 获取主键名称
         /// </summary>
-        public static string GetIdName(Type type, out Type idType)
+        internal static string GetIdName(Type type, out Type idType)
         {
             PropertyInfoEx[] propertyInfoList = GetEntityProperties(type);
             foreach (PropertyInfoEx propertyInfoEx in propertyInfoList)
@@ -38,7 +38,7 @@ namespace Dapper.LiteSql
         /// <summary>
         /// 获取实体类属性
         /// </summary>
-        public static PropertyInfoEx[] GetEntityProperties(Type type)
+        internal static PropertyInfoEx[] GetEntityProperties(Type type)
         {
             return PropertiesCache.TryGet<PropertyInfoEx[]>(type, modelType =>
             {
