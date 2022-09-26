@@ -23,7 +23,7 @@ List<SysUser> list = session.CreateSql(@"
         {
             CreateUserId = "1",
             Password = "%345%",
-            Ids = session.CreateSql().ForList(new List<int> { 1, 2, 9, 10, 11 })
+            Ids = session.ForList(new List<int> { 1, 2, 9, 10, 11 })
         })
 
     .AppendIf(startTime.HasValue, " and t.create_time >= @StartTime ", new { StartTime = startTime })
@@ -716,7 +716,7 @@ List<SysUser> list = session.Queryable<SysUser>() //Lambda写法
         {
             CreateUserId = "1",
             Password = "%345%",
-            Ids = session.CreateSql().ForList(new List<int> { 1, 2, 9, 10, 11 })
+            Ids = session.ForList(new List<int> { 1, 2, 9, 10, 11 })
         })
 
     .Where(t => !t.RealName.Contains("管理员")) //Lambda写法
