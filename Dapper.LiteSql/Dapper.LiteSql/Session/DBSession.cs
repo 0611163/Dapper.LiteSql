@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -32,6 +33,11 @@ namespace Dapper.LiteSql
         /// SQL过滤正则
         /// </summary>
         private static Dictionary<string, Regex> _sqlFilteRegexDict = new Dictionary<string, Regex>();
+
+        /// <summary>
+        /// 数据库字段名与实体类属性名映射
+        /// </summary>
+        private static ConcurrentDictionary<Type, bool> _dictForTypeMap = new ConcurrentDictionary<Type, bool>();
         #endregion
 
         #region 变量
@@ -207,6 +213,24 @@ namespace Dapper.LiteSql
         public SqlValue ForList(IList list)
         {
             return _provider.ForList(list);
+        }
+        #endregion
+
+        #region 从连接池池获取连接
+        /// <summary>
+        /// 从连接池池获取连接
+        /// </summary>
+        public DbConnectionExt GetConnection(DbTransactionExt _tran = null)
+        {
+            return _connFactory.GetConnection(_tran);
+        }
+
+        /// <summary>
+        /// 从连接池池获取连接
+        /// </summary>
+        public Task<DbConnectionExt> GetConnectionAsync(DbTransactionExt _tran = null)
+        {
+            return _connFactory.GetConnectionAsync(_tran);
         }
         #endregion
 

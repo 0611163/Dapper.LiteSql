@@ -224,12 +224,10 @@ namespace Dapper.LiteSql
         #endregion
 
         #region 设置 数据库字段名与实体类属性名映射
-        private static ConcurrentDictionary<Type, bool> _dictForTypeMap = new ConcurrentDictionary<Type, bool>();
-
         /// <summary>
         /// 设置 数据库字段名与实体类属性名映射
         /// </summary>
-        internal static void SetTypeMap(Type type)
+        public void SetTypeMap(Type type)
         {
             _dictForTypeMap.GetOrAdd(type, key =>
             {
@@ -269,7 +267,7 @@ namespace Dapper.LiteSql
         /// <summary>
         /// 设置 数据库字段名与实体类属性名映射
         /// </summary>
-        internal static void SetTypeMap<T>()
+        public void SetTypeMap<T>()
         {
             Type type = typeof(T);
             SetTypeMap(type);

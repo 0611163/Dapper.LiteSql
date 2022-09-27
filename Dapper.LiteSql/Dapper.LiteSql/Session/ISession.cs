@@ -60,5 +60,29 @@ namespace Dapper.LiteSql
         SqlValue ForList(IList list);
         #endregion
 
+        #region 从连接池池获取连接
+        /// <summary>
+        /// 从连接池池获取连接
+        /// </summary>
+        DbConnectionExt GetConnection(DbTransactionExt _tran = null);
+
+        /// <summary>
+        /// 从连接池池获取连接
+        /// </summary>
+        Task<DbConnectionExt> GetConnectionAsync(DbTransactionExt _tran = null);
+        #endregion
+
+        #region 设置 数据库字段名与实体类属性名映射
+        /// <summary>
+        /// 设置 数据库字段名与实体类属性名映射
+        /// </summary>
+        void SetTypeMap(Type type);
+
+        /// <summary>
+        /// 设置 数据库字段名与实体类属性名映射
+        /// </summary>
+        void SetTypeMap<T>();
+        #endregion
+
     }
 }

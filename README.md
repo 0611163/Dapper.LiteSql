@@ -836,6 +836,35 @@ foreach (SysUser item in list)
 Assert.IsTrue(list.Count > 0);
 ```
 
+## 直接使用Dapper
+
+有的功能Dapper.LiteSql不支持，例如调用存储过程，可以直接使用Dapper
+使用Dapper时，可以直接new数据库连接对象，也可以从连接池获取连接对象
+
+```C#
+var session = LiteSqlFactory.GetSession();
+
+session.SetTypeMap<SysUser>(); //设置数据库字段名与实体类属性名映射
+
+using (var conn = session.GetConnection()) //此处从连接池获取连接，用完一定要释放，也可以不使用连接池，直接new MySqlConnection
+{
+    DynamicParameters dynamicParameters = new DynamicParameters();
+    dynamicParameters.Add("id", 20);
+
+    List<SysUser> list = conn.Conn.Query<SysUser>(@"
+        select *
+        from sys_user 
+        where id < @id", dynamicParameters).ToList();
+
+    foreach (SysUser item in list)
+    {
+        Console.WriteLine(ModelToStringUtil.ToString(item));
+
+        Assert.IsTrue(!string.IsNullOrWhiteSpace(item.UserName));
+    }
+}
+```
+
 ## 手动分表
 
 ### 定义LiteSqlFactory类
