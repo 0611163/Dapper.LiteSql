@@ -12,7 +12,7 @@ using Dapper;
 
 namespace Dapper.LiteSql
 {
-    public partial class DBSession : ISession
+    public partial class DBSession : IDBSession
     {
         #region 获取主键名称
         /// <summary>

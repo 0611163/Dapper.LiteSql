@@ -10,7 +10,7 @@ using Dapper;
 
 namespace Dapper.LiteSql
 {
-    public partial class DBSession : ISession
+    public partial class DBSession : IDBSession
     {
         #region QueryById<T> 根据Id查询实体
         /// <summary>

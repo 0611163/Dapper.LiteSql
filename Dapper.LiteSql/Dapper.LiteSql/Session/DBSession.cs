@@ -26,7 +26,7 @@ namespace Dapper.LiteSql
     /// 一个DBSession实例对应一个数据库连接，一个DBSession实例只有一个数据库连接
     /// DBSession不是线程安全的，不能跨线程使用
     /// </summary>
-    public partial class DBSession : ISession
+    public partial class DBSession : IDBSession
     {
         #region 静态变量
         /// <summary>

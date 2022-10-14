@@ -10,7 +10,7 @@ using Dapper;
 
 namespace Dapper.LiteSql
 {
-    public partial class DBSession : ISession
+    public partial class DBSession : IDBSession
     {
         #region SQL打印
         /// <summary>

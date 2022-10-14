@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Dapper.LiteSql
 {
-    public partial interface ISession
+    public partial interface IDBSession
     {
         #region 查询列表
         /// <summary>

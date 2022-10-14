@@ -11,7 +11,7 @@ using AutoMapper;
 
 namespace Dapper.LiteSql
 {
-    public partial class DBSession : ISession
+    public partial class DBSession : IDBSession
     {
         #region 变量
         /// <summary>
