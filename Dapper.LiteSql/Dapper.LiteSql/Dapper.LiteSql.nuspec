@@ -2,15 +2,15 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>Dapper.LiteSql</id>
-    <version>1.8.19</version>
+    <version>1.8.22</version>
     <title>Dapper.LiteSql</title>
     <authors>suxiang</authors>
     <owners></owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="expression">MIT</license>
     <projectUrl>https://github.com/0611163/Dapper.LiteSql</projectUrl>
-    <description>一款使用原生SQL查询的轻量级ORM，支持Oracle、MSSQL、MySQL、PostgreSQL、SQLite、Access数据库。</description>
-    <releaseNotes>修复Lambda表达式写法集合Contains不支持ClickHouse的问题</releaseNotes>
+    <description>一款同时支持原生SQL和Lambda表达式的轻量级ORM，支持Oracle、MSSQL、MySQL、PostgreSQL、SQLite、Access数据库，以及任意ADO.NET支持的数据库。</description>
+    <releaseNotes>处理SQL拼接时，防止字段中出现SQL关键字而导致错误。</releaseNotes>
     <copyright>Copyright @ 2022</copyright>
     <dependencies>
       <group targetFramework=".NETFramework4.6.1">
