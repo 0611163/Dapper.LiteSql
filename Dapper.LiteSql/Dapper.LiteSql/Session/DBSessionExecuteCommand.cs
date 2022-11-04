@@ -241,7 +241,7 @@ namespace Dapper.LiteSql
         public bool Exists(string sqlString, DbParameter[] cmdParms)
         {
             SqlFilter(ref sqlString);
-            OnExecuting?.Invoke(sqlString, null);
+            OnExecuting?.Invoke(sqlString, cmdParms);
 
             using (_conn = _connFactory.GetConnection(_tran))
             {
@@ -266,7 +266,7 @@ namespace Dapper.LiteSql
         public async Task<bool> ExistsAsync(string sqlString, DbParameter[] cmdParms)
         {
             SqlFilter(ref sqlString);
-            OnExecuting?.Invoke(sqlString, null);
+            OnExecuting?.Invoke(sqlString, cmdParms);
 
             using (_conn = await _connFactory.GetConnectionAsync(_tran))
             {
@@ -294,7 +294,7 @@ namespace Dapper.LiteSql
         public T QuerySingle<T>(string sqlString, DbParameter[] cmdParms)
         {
             SqlFilter(ref sqlString);
-            OnExecuting?.Invoke(sqlString, null);
+            OnExecuting?.Invoke(sqlString, cmdParms);
 
             using (_conn = _connFactory.GetConnection(_tran))
             {
@@ -321,7 +321,7 @@ namespace Dapper.LiteSql
         public object QuerySingle(string sqlString, DbParameter[] cmdParms)
         {
             SqlFilter(ref sqlString);
-            OnExecuting?.Invoke(sqlString, null);
+            OnExecuting?.Invoke(sqlString, cmdParms);
 
             using (_conn = _connFactory.GetConnection(_tran))
             {
@@ -348,7 +348,7 @@ namespace Dapper.LiteSql
         public async Task<T> QuerySingleAsync<T>(string sqlString, DbParameter[] cmdParms)
         {
             SqlFilter(ref sqlString);
-            OnExecuting?.Invoke(sqlString, null);
+            OnExecuting?.Invoke(sqlString, cmdParms);
 
             using (_conn = await _connFactory.GetConnectionAsync(_tran))
             {
@@ -375,7 +375,7 @@ namespace Dapper.LiteSql
         public async Task<object> QuerySingleAsync(string sqlString, DbParameter[] cmdParms)
         {
             SqlFilter(ref sqlString);
-            OnExecuting?.Invoke(sqlString, null);
+            OnExecuting?.Invoke(sqlString, cmdParms);
 
             using (_conn = await _connFactory.GetConnectionAsync(_tran))
             {
