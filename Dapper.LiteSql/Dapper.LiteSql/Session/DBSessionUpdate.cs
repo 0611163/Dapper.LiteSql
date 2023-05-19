@@ -238,7 +238,7 @@ namespace Dapper.LiteSql
             {
                 PropertyInfo propertyInfo = propertyInfoEx.PropertyInfo;
 
-                if (propertyInfo.GetCustomAttributes(typeof(ColumnAttribute), false).Length > 0)
+                if (propertyInfo.GetCustomAttributes(typeof(ColumnAttribute), false).Length > 0 && !propertyInfoEx.IsDBKey)
                 {
                     object oldVal = oldObj == null ? null : propertyInfo.GetValue(oldObj, null);
                     object val = propertyInfo.GetValue(obj, null);
@@ -289,7 +289,7 @@ namespace Dapper.LiteSql
                 {
                     PropertyInfo propertyInfo = propertyInfoEx.PropertyInfo;
 
-                    if (propertyInfo.GetCustomAttributes(typeof(ColumnAttribute), false).Length > 0)
+                    if (propertyInfo.GetCustomAttributes(typeof(ColumnAttribute), false).Length > 0 && !propertyInfoEx.IsDBKey)
                     {
                         object oldVal = oldObj == null ? null : propertyInfo.GetValue(oldObj, null);
                         object val = propertyInfo.GetValue(obj, null);
